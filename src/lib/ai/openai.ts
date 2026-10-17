@@ -1,6 +1,7 @@
 import 'server-only';
 import OpenAI, { toFile } from 'openai';
 import { assertQuota, recordUsage } from '../tokens';
+import { HttpError } from '../api';
 import { IMAGE_TOKEN_WEIGHT } from '../plans';
 
 /** Typical output tokens for one high-quality portrait image. */
@@ -12,7 +13,7 @@ export const IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL || 'gpt-image-2';
 
 let client: OpenAI | null = null;
 function openai() {
-  if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY is not set.');
+  if (!process.env.OPENAI_API_KEY) throw new HttpError(503, 'AI cover artwork isn’t switched on yet. The site owner needs to add the OpenAI API key in Vercel.', 'AI_NOT_CONFIGURED');
   client ??= new OpenAI({ apiKey: process.env.OPENAI_API_KEY, maxRetries: 2 });
   return client;
 }

@@ -1,6 +1,7 @@
 import 'server-only';
 import Anthropic from '@anthropic-ai/sdk';
 import { assertQuota, recordUsage } from '../tokens';
+import { HttpError } from '../api';
 
 // Claude handles all writing, editing, proofreading and publishing copy.
 // Change the models in Vercel → Settings → Environment Variables without touching code.
@@ -9,7 +10,7 @@ export const FAST_MODEL = process.env.ANTHROPIC_FAST_MODEL || 'claude-haiku-5-5'
 
 let client: Anthropic | null = null;
 function anthropic() {
-  if (!process.env.ANTHROPIC_API_KEY) throw new Error('ANTHROPIC_API_KEY is not set.');
+  if (!process.env.ANTHROPIC_API_KEY) throw new HttpError(503, 'AI writing and editing aren’t switched on yet. The site owner needs to add the Anthropic API key in Vercel.', 'AI_NOT_CONFIGURED');
   client ??= new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, maxRetries: 2 });
   return client;
 }
