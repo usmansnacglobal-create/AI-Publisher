@@ -10,7 +10,23 @@ function LoginForm() {
   const params = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState(params.get('error') === 'link' ? 'That link has expired. Sign in, or request a new one.' : '');
+  const linkError = params.get('error');
+  const [error, setError] = useState(
+    linkError === 'expired'
+      ? 'That email link has expired or was already used. Try signing in: if your email is already confirmed, it will work. Otherwise, send yourself a new link below.'
+      : linkError === 'link'
+        ? 'That link didn’t work. If you opened it in a different browser, your email may still be confirmed, so try signing in.'
+        : '',
+  );
+  const [unconfirmed, setUnconfirmed] = useState(!!linkError);
+  const [resent, setResent] = useState(false);
+
+  async function resend() {
+    if (!email) return setError('Enter your email above first.');
+    const { error } = await createClient().auth.resend({ type: 'signup', email, options: { emailRedirectTo: `${location.origin}/auth/callback?next=/dashboard` } });
+    if (error) return setError(error.message);
+    setResent(true);
+  }
   const [busy, setBusy] = useState(false);
 
   async function submit(e: React.FormEvent) {
@@ -19,7 +35,9 @@ function LoginForm() {
     setError('');
     const { error } = await createClient().auth.signInWithPassword({ email, password });
     if (error) {
-      setError(/confirm/i.test(error.message) ? 'Confirm your email first. Check your inbox for the link.' : 'That email and password don’t match.');
+      const notConfirmed = /confirm/i.test(error.message);
+      setUnconfirmed(notConfirmed || unconfirmed);
+      setError(notConfirmed ? 'Confirm your email first. Check your inbox for the link, or send a new one below.' : 'That email and password don’t match.');
       setBusy(false);
       return;
     }
@@ -40,6 +58,15 @@ function LoginForm() {
       <Button type="submit" className="w-full" loading={busy}>
         Sign in
       </Button>
+      {unconfirmed && (
+        resent ? (
+          <p className="text-[14px] text-cloth" role="status">A new confirmation link is on its way to {email}. Open it in this browser.</p>
+        ) : (
+          <Button type="button" variant="secondary" className="w-full" onClick={resend}>
+            Send a new confirmation link
+          </Button>
+        )
+      )}
       <div className="flex justify-between text-[14px]">
         <Link href="/forgot-password" className="text-ink-muted underline">Forgot password?</Link>
         <Link href="/signup" className="text-cloth underline">Create an account</Link>

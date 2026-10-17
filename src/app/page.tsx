@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { PLANS } from '@/lib/plans';
 
 const STAGES = [
@@ -9,7 +10,10 @@ const STAGES = [
   ['Publish', 'Store description, keywords and categories written for you. Submit once and follow your book through review to the stores.'],
 ];
 
-export default function Landing() {
+export default function Landing({ searchParams }: { searchParams: { error_code?: string; code?: string } }) {
+  // Expired or reused email links land here; send people somewhere that explains what to do.
+  if (searchParams.error_code) redirect(`/login?error=${searchParams.error_code === 'otp_expired' ? 'expired' : 'link'}`);
+  if (searchParams.code) redirect(`/auth/callback?code=${encodeURIComponent(searchParams.code)}`);
   return (
     <div className="min-h-screen">
       <header className="mx-auto flex max-w-[1100px] items-center justify-between px-4 py-5 sm:px-8">
