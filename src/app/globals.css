@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: light; }
+html { -webkit-text-size-adjust: 100%; }
+body { @apply bg-ground text-ink font-sans antialiased; font-size: 15px; line-height: 1.5; }
+h1, h2, h3 { @apply font-serif text-ink; font-weight: 500; letter-spacing: -0.01em; }
+h1 { font-size: 1.9rem; line-height: 1.15; }
+h2 { font-size: 1.35rem; line-height: 1.25; }
+h3 { font-size: 1.1rem; line-height: 1.3; }
+::selection { background: #D8E6DF; }
+:focus-visible { outline: 2px solid #2F5D50; outline-offset: 2px; }
+a { text-underline-offset: 3px; }
+
+@layer components {
+  .field { @apply w-full rounded border border-line bg-sheet px-3 py-2 text-[15px] text-ink placeholder:text-ink-faint
+    focus:border-cloth focus:outline-none focus:ring-2 focus:ring-cloth/20 disabled:opacity-60; }
+  .label { @apply mb-1 block text-[13px] font-medium text-ink-soft; }
+  .hint { @apply mt-1 text-[13px] text-ink-muted; }
+  .panel { @apply rounded-md border border-line bg-sheet; }
+  .chip { @apply inline-flex items-center rounded-full border border-line bg-sheet px-3 py-1 text-[13px] text-ink-soft
+    hover:border-ink-faint aria-pressed:border-cloth aria-pressed:bg-cloth-light aria-pressed:text-cloth-dark; }
+  /* The manuscript page: the one place the app gets expressive. */
+  .manuscript { @apply font-serif text-[19px] leading-[1.75] text-ink; font-variation-settings: 'opsz' 18; hyphens: auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

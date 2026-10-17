@@ -1,0 +1,63 @@
+/** Splits an imported manuscript into chapters by headings like "Chapter 3", "CHAPTER THREE", "Prologue". */
+export function splitIntoChapters(raw: string): { title: string; content: string }[] {
+  const text = raw.replace(/\r\n?/g, '\n').replace(/ /g, ' ');
+  const lines = text.split('\n');
+  const heading =
+    /^\s*(?:#{1,3}\s*)?((?:chapter|part)\s+(?:\d+|[ivxlc]+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty[\w-]*|thirty[\w-]*)\b.*|prologue\b.*|epilogue\b.*|introduction\s*|preface\s*|afterword\s*)$/i;
+  const chapters: { title: string; lines: string[] }[] = [];
+  let current: { title: string; lines: string[] } | null = null;
+  for (const line of lines) {
+    const m = heading.exec(line);
+    if (m && line.trim().length < 120) {
+      current = { title: tidyTitle(m[1]), lines: [] };
+      chapters.push(current);
+    } else {
+      if (!current) {
+        if (!line.trim()) continue;
+        current = { title: 'Opening', lines: [] };
+        chapters.push(current);
+      }
+      current.lines.push(line);
+    }
+  }
+  const result = chapters
+    .map((c) => ({ title: c.title, content: normaliseParagraphs(c.lines.join('\n')) }))
+    .filter((c) => c.content.trim());
+  if (result.length <= 1 && text.trim()) {
+    // No headings found: split into chunks of ~4,000 words at paragraph breaks.
+    return chunkByWords(normaliseParagraphs(text), 4000);
+  }
+  return result;
+}
+
+function tidyTitle(t: string) {
+  const s = t.replace(/^#+\s*/, '').trim();
+  const m = /^chapter\s+[\w-]+\s*[:.\-–—]\s*(.+)$/i.exec(s);
+  return (m ? m[1] : s).slice(0, 200);
+}
+
+export function normaliseParagraphs(text: string) {
+  return text
+    .split(/\n\s*\n|\n(?=\s{2,}|\t)/)
+    .map((p) => p.replace(/\s*\n\s*/g, ' ').replace(/[ \t]+/g, ' ').trim())
+    .filter(Boolean)
+    .join('\n\n');
+}
+
+function chunkByWords(text: string, size: number) {
+  const paras = text.split('\n\n');
+  const out: { title: string; content: string }[] = [];
+  let buf: string[] = [];
+  let words = 0;
+  for (const p of paras) {
+    buf.push(p);
+    words += p.split(/\s+/).length;
+    if (words >= size) {
+      out.push({ title: `Part ${out.length + 1}`, content: buf.join('\n\n') });
+      buf = [];
+      words = 0;
+    }
+  }
+  if (buf.length) out.push({ title: `Part ${out.length + 1}`, content: buf.join('\n\n') });
+  return out;
+}
