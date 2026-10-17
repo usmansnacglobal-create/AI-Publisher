@@ -29,7 +29,7 @@ export default async function UsagePage() {
   const { supabase, user } = await getViewer();
   const u = await getUsage(user.id);
   const { data: rows } = await supabase.from('token_usage').select('book_id, feature, total_tokens, created_at').gte('created_at', u.periodStart);
-  const { data: books } = await supabase.from('books').select('id,title');
+  const { data: books } = await supabase.from('books').select('id,title').eq('user_id', user.id);
   const sum = (key: (r: NonNullable<typeof rows>[number]) => string) => {
     const m = new Map<string, number>();
     for (const r of rows ?? []) m.set(key(r), (m.get(key(r)) ?? 0) + r.total_tokens);

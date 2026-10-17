@@ -28,7 +28,7 @@ export const POST = handle(async (req: Request, { params }: Ctx) => {
     .safeParse(await req.json());
   if (!body.success) throw new HttpError(400, body.error.issues[0].message);
 
-  const { data: open } = await supabase.from('submissions').select('id,status').eq('book_id', book.id).not('status', 'in', '(live,changes_requested)');
+  const { data: open } = await supabase.from('submissions').select('id,status').eq('book_id', book.id).not('status', 'in', '(live,changes_requested,rejected)');
   if (open?.length) throw new HttpError(409, 'This book already has a submission in progress.');
   const checks = await readiness(supabase, book, body.data.formats);
   const missing = checks.filter((c) => !c.ok);

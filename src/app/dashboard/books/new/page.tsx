@@ -6,9 +6,9 @@ import { NewBookForm } from './form';
 export const metadata = { title: 'New book' };
 
 export default async function NewBook() {
-  const { supabase, profile } = await getViewer();
+  const { supabase, user, profile } = await getViewer();
   const plan = getPlan(profile.plan);
-  const { count } = await supabase.from('books').select('id', { count: 'exact', head: true });
+  const { count } = await supabase.from('books').select('id', { count: 'exact', head: true }).eq('user_id', user.id);
   if (plan.bookLimit !== null && (count ?? 0) >= plan.bookLimit) {
     const next = plan.id === 'free' ? 'Pro for up to 10 books' : 'Agency for unlimited books';
     return (

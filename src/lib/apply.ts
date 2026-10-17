@@ -26,6 +26,11 @@ function fuzzyFind(text: string, needle: string): [number, number] | null {
   let flat = '';
   let lastSpace = false;
   for (let i = 0; i < text.length; i++) {
+    // Formatting marks (Markdown emphasis, underline tags) are invisible to the reader, so ignore them.
+    if (text.startsWith('<u>', i)) { i += 2; continue; }
+    if (text.startsWith('</u>', i)) { i += 3; continue; }
+    if (text[i] === '*' || (text[i] === '_' && !/\w/.test(text[i - 1] ?? '') )) continue;
+    if (text[i] === '_' && !/\w/.test(text[i + 1] ?? '')) continue;
     const ch = norm(text[i]);
     if (/\s/.test(ch)) {
       if (lastSpace) continue;
@@ -38,7 +43,15 @@ function fuzzyFind(text: string, needle: string): [number, number] | null {
       lastSpace = false;
     }
   }
-  const n = needle.split('').map(norm).join('').replace(/\s+/g, ' ').trim();
+  const n = needle
+    .replace(/<\/?u>/g, '')
+    .replace(/\*+/g, '')
+    .replace(/(^|\W)_+|_+(?=\W|$)/g, '$1')
+    .split('')
+    .map(norm)
+    .join('')
+    .replace(/\s+/g, ' ')
+    .trim();
   if (!n) return null;
   const at = flat.indexOf(n);
   if (at === -1) return null;

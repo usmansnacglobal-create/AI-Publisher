@@ -9,7 +9,7 @@ export async function buildManuscript(supabase: ReturnType<typeof createClient>,
     supabase.from('profiles').select('full_name,pen_name,language').eq('id', book.user_id).single(),
     supabase.from('submissions').select('isbn').eq('book_id', book.id).not('isbn', 'is', null).order('created_at', { ascending: false }).limit(1),
   ]);
-  const author = profile?.pen_name || profile?.full_name || 'Author';
+  const author = book.author_name || profile?.pen_name || profile?.full_name || 'Author';
   return {
     title: book.title,
     subtitle: book.subtitle,

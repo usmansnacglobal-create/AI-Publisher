@@ -11,7 +11,7 @@ export function BookTabs({ id }: { id: string }) {
     ['/write', 'Write'],
     ['/bible', 'Story bible'],
     ['/proofread', 'Proofread'],
-    ['/format', 'Format'],
+    ['/format', 'Layout'],
     ['/cover', 'Cover'],
     ['/publish', 'Publish'],
   ];

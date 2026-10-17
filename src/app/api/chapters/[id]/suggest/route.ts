@@ -31,10 +31,10 @@ export const POST = handle(async (req: Request, { params }: { params: { id: stri
   } else {
     const a = EDIT_ACTIONS[body.action];
     if (!a) throw new HttpError(400, 'Unknown edit.');
-    if (['expand', 'shorten'].includes(body.action) && !body.selection?.trim()) {
+    if ((['expand', 'shorten'].includes(body.action) || a.group === 'selection') && !body.selection?.trim()) {
       throw new HttpError(400, 'Select a passage in the chapter first.');
     }
-    instruction = a.instruction;
+    instruction = a.instruction + (body.instruction?.trim() ? `\nThe author adds: ${body.instruction.trim()}` : '');
   }
 
   const deep = EDIT_ACTIONS[body.action]?.group === 'deep' || body.action === 'custom';
@@ -42,7 +42,7 @@ export const POST = handle(async (req: Request, { params }: { params: { id: stri
     userId: user.id,
     bookId: book.id,
     feature: deep ? 'deep_edit' : 'assist',
-    model: body.action === 'grammar' ? FAST_MODEL : WRITING_MODEL,
+    model: ['grammar', 'sel_fix'].includes(body.action) ? FAST_MODEL : WRITING_MODEL,
     system: EDITOR_SYSTEM,
     maxTokens: deep ? 12000 : 5000,
     schema: SUGGESTIONS_SCHEMA,

@@ -30,7 +30,8 @@ export async function readiness(supabase: ReturnType<typeof createClient>, book:
   ];
   if (formats.includes('paperback')) {
     checks.push(
-      { id: 'interior', label: 'Print interior created', ok: !!book.page_count, fix: 'Create the print PDF on the Format page.', link: `${base}/format` },
+      { id: 'layout', label: 'Interior layout approved', ok: !!book.layout_approved_at && new Date(book.content_updated_at) <= new Date(book.layout_approved_at), fix: book.layout_approved_at ? 'Your text changed since you approved the layout. Approve it again.' : 'Approve the layout.', link: `${base}/format` },
+      { id: 'interior', label: 'Print interior created', ok: !!book.page_count, fix: 'Download the print PDF on the Layout tab.', link: `${base}/format` },
       { id: 'wrap', label: 'Full print cover (with spine) exported', ok: !!cover?.wrap_path, fix: 'Export the full paperback cover.', link: `${base}/cover` },
     );
   }

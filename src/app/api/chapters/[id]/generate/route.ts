@@ -17,6 +17,22 @@ export const POST = handle(async (req: Request, { params }: { params: { id: stri
     .parse(await req.json().catch(() => ({})));
   const chapter = await loadChapter(supabase, params.id);
   const { book, chapters, bible } = await loadContext(supabase, chapter);
+  // "Outline only": write a detailed beat-by-beat plan into the chapter brief, not the text.
+  if (mode === 'write' && chapter.settings?.mode === 'outline') {
+    const stream = await streamText({
+      userId: user.id,
+      bookId: book.id,
+      feature: 'outline',
+      system: WRITER_SYSTEM,
+      maxTokens: 2500,
+      prompt: `${chapterPrompt(book, chapter, chapters, bible)}\n\nInstead of writing the chapter, write a detailed plan for the author to write from: 6–12 numbered beats, each 1–3 sentences, covering what happens or what is explained, key details to include, and how the chapter should end.${guidance ? `\nAuthor's notes: ${guidance}` : ''}`,
+      onDone: async (text) => {
+        await createAdminClient().from('chapters').update({ synopsis: text.slice(0, 6000) }).eq('id', chapter.id).eq('user_id', user.id);
+      },
+    });
+    return new Response(stream, { headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store', 'X-Target': 'synopsis' } });
+  }
+
   await snapshot(supabase, chapter, mode === 'write' ? 'Before AI rewrite' : 'Before AI continue');
 
   let prompt = chapterPrompt(book, chapter, chapters, bible);

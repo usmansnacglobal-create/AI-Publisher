@@ -9,6 +9,8 @@ const LABELS: Record<string, string> = {
   formatting: 'passed review and is being prepared for the stores',
   publishing: 'is being sent to the stores',
   live: 'is live',
+  rejected: 'couldn’t be accepted for publishing',
+  failed: 'hit a problem at the stores; our team is on it',
 };
 
 /** Publishing team only: move a submission to its next stage. */
@@ -18,7 +20,7 @@ export const PATCH = handle(async (req: Request, { params }: { params: { id: str
   if (me?.role !== 'admin') throw new HttpError(403, 'Only the publishing team can do this.');
   const body = z
     .object({
-      status: z.enum(['in_review', 'changes_requested', 'formatting', 'publishing', 'live']),
+      status: z.enum(['in_review', 'changes_requested', 'formatting', 'publishing', 'live', 'rejected', 'failed']),
       isbn: z.string().max(20).optional(),
       notes: z.string().max(4000).optional(),
     })
@@ -33,7 +35,7 @@ export const PATCH = handle(async (req: Request, { params }: { params: { id: str
     .update({ status: body.status, history, isbn: body.isbn ?? sub.isbn, reviewer_notes: body.notes ?? sub.reviewer_notes })
     .eq('id', sub.id);
   if (body.status === 'live') await admin.from('books').update({ status: 'published' }).eq('id', sub.book_id);
-  if (body.status === 'changes_requested') await admin.from('books').update({ status: 'draft' }).eq('id', sub.book_id);
+  if (['changes_requested', 'rejected'].includes(body.status)) await admin.from('books').update({ status: 'draft' }).eq('id', sub.book_id);
 
   const title = (sub.books as { title: string } | null)?.title ?? 'Your book';
   await notify(sub.user_id, {

@@ -13,7 +13,7 @@ export const GET = handle(async () => {
     .select('book_id, feature, provider, total_tokens, created_at')
     .gte('created_at', usage.periodStart)
     .order('created_at');
-  const { data: books } = await supabase.from('books').select('id,title');
+  const { data: books } = await supabase.from('books').select('id,title').eq('user_id', user.id);
   const titles = new Map((books ?? []).map((b) => [b.id, b.title]));
   const byFeature: Record<string, number> = {};
   const byBook: Record<string, number> = {};

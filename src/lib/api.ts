@@ -72,6 +72,20 @@ export interface Book {
   author_bio: string;
   dedication: string;
   copyright_holder: string;
+  author_name: string;
+  reader_outcome: string;
+  key_message: string;
+  pov: string;
+  pacing: string;
+  themes: string[];
+  dialect: string;
+  writing_mode: 'full' | 'assist' | 'outline';
+  writing_sample: string;
+  layout: Record<string, unknown>;
+  layout_approved_at: string | null;
+  content_updated_at: string;
+  language: string;
+  edition: string;
   created_at: string;
   updated_at: string;
 }
@@ -88,4 +102,20 @@ export interface Chapter {
   status: 'planned' | 'drafted';
   generated_at: string | null;
   updated_at: string;
+  settings: ChapterSettings;
+  admin_note: string;
+}
+
+export interface ChapterSettings {
+  mode?: 'full' | 'assist' | 'outline';
+  length?: 'short' | 'standard' | 'long' | 'custom';
+  words?: number;
+  tone?: string;
+  formality?: 'casual' | 'neutral' | 'formal';
+  sentences?: 'short' | 'varied' | 'long';
+  style?: string;
+  instructions?: string;
+  includeSummary?: boolean;
+  includeReflection?: boolean;
+  useSample?: boolean;
 }

@@ -3,7 +3,7 @@ import { getViewer } from '@/lib/data';
 import type { Book } from '@/lib/api';
 import { Format } from './format';
 
-export const metadata = { title: 'Format' };
+export const metadata = { title: 'Layout' };
 
 export default async function FormatPage({ params }: { params: { id: string } }) {
   const { supabase, profile } = await getViewer();

@@ -87,3 +87,21 @@ describe('plans', () => {
     expect(getPlan('agency').bookLimit).toBeNull();
   });
 });
+
+describe('matching text that has formatting', () => {
+  it('finds plain selections inside Markdown emphasis and underline', () => {
+    const t = 'He said *no* and **left**, then <u>ran</u> home.';
+    expect(locate(t, 'He said no and left, then ran home.')).not.toBeNull();
+    expect(applyReplacement(t, 'then ran home', 'then walked home')).toBe('He said *no* and **left**, then walked home.');
+  });
+});
+
+describe('rich formatting in exports', () => {
+  it('reads lists, quotes, underline and links', () => {
+    const b = toBlocks('- one\n- *two*\n\n1. first\n2. second\n\n> A quote\n> continues\n\nSee [the site](https://x.y) and <u>this</u>.\n\n---');
+    expect(b.map((x) => x.type)).toEqual(['list', 'list', 'quote', 'para', 'break']);
+    expect(b[1].type === 'list' && b[1].ordered).toBe(true);
+    expect(b[3].type === 'para' && b[3].runs.map((r) => r.text).join('')).toBe('See the site and this.');
+    expect(b[3].type === 'para' && b[3].runs.find((r) => r.underline)?.text).toBe('this');
+  });
+});

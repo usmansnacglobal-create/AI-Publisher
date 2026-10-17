@@ -1,1 +1,6 @@
-EB Garamond by Georg Duffner and Octavio Pardo, licensed under the SIL Open Font License 1.1 (https://openfontlicense.org). Embedded in print PDFs.
+Fonts embedded in print PDFs, all under the SIL Open Font License 1.1 (https://openfontlicense.org):
+- EB Garamond (Georg Duffner, Octavio Pardo)
+- Libre Baskerville (Impallari Type)
+- Crimson Text (Sebastian Kosch)
+- Gelasio (Eben Sorkin)
+- Lora (Cyreal)

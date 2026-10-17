@@ -10,7 +10,7 @@ export default async function BillingPage() {
   const { supabase, user, profile } = await getViewer();
   const usage = await getUsage(user.id);
   const { data: payments } = await supabase.from('payments').select('*').order('created_at', { ascending: false }).limit(50);
-  const { count: books } = await supabase.from('books').select('id', { count: 'exact', head: true });
+  const { count: books } = await supabase.from('books').select('id', { count: 'exact', head: true }).eq('user_id', user.id);
   return (
     <div className="mx-auto max-w-[1000px]">
       <PageHeader title="Plan and billing">Payments are handled securely by PayPal. You can pay with a PayPal account or a card.</PageHeader>

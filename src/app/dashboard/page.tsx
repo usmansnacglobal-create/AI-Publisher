@@ -12,7 +12,7 @@ export const metadata = { title: 'Home' };
 export default async function Home() {
   const { supabase, user, profile } = await getViewer();
   const [books, usage, { data: activity }] = await Promise.all([
-    listBooks(supabase),
+    listBooks(supabase, user.id),
     getUsage(user.id),
     supabase.from('activity_logs').select('*').order('created_at', { ascending: false }).limit(8),
   ]);

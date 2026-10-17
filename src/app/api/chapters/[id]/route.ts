@@ -20,9 +20,24 @@ export const PATCH = handle(async (req: Request, { params }: Ctx) => {
   const body = z
     .object({
       title: z.string().max(200),
-      synopsis: z.string().max(2000),
+      synopsis: z.string().max(6000),
       content: z.string().max(400_000),
       baseUpdatedAt: z.string(),
+      settings: z
+        .object({
+          mode: z.enum(['full', 'assist', 'outline']),
+          length: z.enum(['short', 'standard', 'long', 'custom']),
+          words: z.number().int().min(200).max(15000),
+          tone: z.string().max(100),
+          formality: z.enum(['casual', 'neutral', 'formal']),
+          sentences: z.enum(['short', 'varied', 'long']),
+          style: z.string().max(200),
+          instructions: z.string().max(3000),
+          includeSummary: z.boolean(),
+          includeReflection: z.boolean(),
+          useSample: z.boolean(),
+        })
+        .partial(),
     })
     .partial()
     .parse(await req.json());
@@ -36,6 +51,7 @@ export const PATCH = handle(async (req: Request, { params }: Ctx) => {
   const updates: Record<string, unknown> = {};
   if (body.title !== undefined) updates.title = body.title;
   if (body.synopsis !== undefined) updates.synopsis = body.synopsis;
+  if (body.settings !== undefined) updates.settings = body.settings;
   if (body.content !== undefined) {
     updates.content = body.content;
     updates.word_count = countWords(body.content);

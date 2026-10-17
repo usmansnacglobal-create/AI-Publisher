@@ -194,7 +194,7 @@ function BriefStep({ data, brief, setBrief, book, setBook, busy, onNext, bookId 
               </select>
             </Field>
             <div className="col-span-2 rounded-md bg-ground px-3 py-2 text-[13px] text-ink-soft">
-              {geo.pages} pages ({geo.pagesSource === 'measured' ? 'measured from your print interior' : geo.pagesSource === 'yours' ? 'your number' : `estimated from ${geo.words.toLocaleString('en-GB')} words; create the print PDF on the Format tab for the exact count`}) · spine {geo.spine.toFixed(3)}″
+              {geo.pages} pages ({geo.pagesSource === 'measured' ? 'measured from your print interior' : geo.pagesSource === 'yours' ? 'your number' : `estimated from ${geo.words.toLocaleString('en-GB')} words; create the print PDF on the Layout tab for the exact count`}) · spine {geo.spine.toFixed(3)}″
               {!geo.spineText && ' · under 79 pages, so no text on the spine'}
             </div>
             <Field label="Page count override (optional)" htmlFor="pc">
@@ -492,7 +492,7 @@ function ExportStep({ data, design, brief, book, imageUrl, bookId, onDone }: {
         </p>
         {g.pagesSource === 'estimated' && brief.format === 'paperback' && (
           <p className="rounded-md border border-gilt/40 bg-gilt-light px-3 py-2 text-[14px]">
-            The spine uses an estimated page count. Create the print PDF on the Format tab first for an exact spine, then export again here.
+            The spine uses an estimated page count. Create the print PDF on the Layout tab first for an exact spine, then export again here.
           </p>
         )}
         <Button onClick={exportAll} loading={busy}>{frontUrl ? 'Export again' : 'Export cover'}</Button>

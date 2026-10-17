@@ -16,11 +16,12 @@ export async function getViewer() {
 
 export type BookWithProgress = Book & { progress: BookProgress; cover_path: string | null };
 
-export async function listBooks(supabase: ReturnType<typeof createClient>): Promise<BookWithProgress[]> {
+/** The signed-in author's own books (admins can read everyone's, so always filter by owner). */
+export async function listBooks(supabase: ReturnType<typeof createClient>, userId: string): Promise<BookWithProgress[]> {
   const [{ data: books }, { data: chapters }, { data: covers }] = await Promise.all([
-    supabase.from('books').select('*').order('updated_at', { ascending: false }),
-    supabase.from('chapters').select('book_id, word_count, status'),
-    supabase.from('covers').select('book_id, front_path, selected_path'),
+    supabase.from('books').select('*').eq('user_id', userId).order('updated_at', { ascending: false }),
+    supabase.from('chapters').select('book_id, word_count, status').eq('user_id', userId),
+    supabase.from('covers').select('book_id, front_path, selected_path').eq('user_id', userId),
   ]);
   return (books ?? []).map((b) => ({
     ...(b as Book),

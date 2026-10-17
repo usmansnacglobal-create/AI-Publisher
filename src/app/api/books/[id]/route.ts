@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { handle, json, requireUser, requireBook, HttpError } from '@/lib/api';
 import { logActivity } from '@/lib/notify';
 import { TRIM_SIZES } from '@/lib/spine';
+import { normaliseLayout } from '@/lib/layout';
 
 const Patch = z
   .object({
@@ -23,6 +24,19 @@ const Patch = z
     author_bio: z.string().max(2000),
     dedication: z.string().max(1000),
     copyright_holder: z.string().max(200),
+    author_name: z.string().max(200),
+    reader_outcome: z.string().max(3000),
+    key_message: z.string().max(1000),
+    pov: z.string().max(100),
+    pacing: z.string().max(100),
+    themes: z.array(z.string().max(60)).max(20),
+    dialect: z.string().max(60),
+    writing_mode: z.enum(['full', 'assist', 'outline']),
+    writing_sample: z.string().max(20000),
+    language: z.string().max(60),
+    edition: z.string().max(60),
+    layout: z.record(z.string(), z.unknown()),
+    approveLayout: z.boolean(),
   })
   .partial();
 
@@ -44,9 +58,20 @@ export const PATCH = handle(async (req: Request, { params }: Ctx) => {
   await requireBook(supabase, params.id);
   const parsed = Patch.safeParse(await req.json());
   if (!parsed.success) throw new HttpError(400, parsed.error.issues[0].message);
-  const updates: Record<string, unknown> = { ...parsed.data };
-  // Changing the print size invalidates the measured page count.
-  if ('trim_size' in updates) updates.page_count = null;
+  const { approveLayout, ...rest } = parsed.data;
+  const updates: Record<string, unknown> = { ...rest };
+  // Changing the print size or interior design invalidates the measured page count and any approval.
+  if ('trim_size' in updates) {
+    updates.page_count = null;
+    updates.layout_approved_at = null;
+  }
+  if ('layout' in updates) {
+    updates.layout = normaliseLayout(updates.layout);
+    updates.page_count = null;
+    updates.layout_approved_at = null;
+  }
+  if (approveLayout === true) updates.layout_approved_at = new Date().toISOString();
+  if (approveLayout === false) updates.layout_approved_at = null;
   const { error } = await supabase.from('books').update(updates).eq('id', params.id);
   if (error) throw error;
   return json({ ok: true });

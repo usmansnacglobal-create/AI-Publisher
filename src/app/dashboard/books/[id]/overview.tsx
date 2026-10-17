@@ -7,7 +7,7 @@ import type { Book, Chapter } from '@/lib/api';
 import type { BookProgress } from '@/lib/text';
 import { formatNumber } from '@/lib/text';
 import { api, errorText } from '@/lib/client';
-import { GENRES } from '@/lib/genres';
+import { DIALECTS, GENRES, PACING, POVS } from '@/lib/genres';
 import { Button, ButtonLink, Empty, Field, Modal, Progress } from '@/components/ui';
 import { useToast } from '@/components/toast';
 
@@ -37,8 +37,16 @@ export function Overview({ book, chapters, progress }: { book: Book; chapters: C
 
   const saveDetails = (e: React.FormEvent) => {
     e.preventDefault();
-    const { title, subtitle, book_type, genre, audience, style, tone, summary, target_words, target_chapters } = f;
-    run('details', () => api(`/api/books/${book.id}`, { method: 'PATCH', body: { title, subtitle, book_type, genre, audience, style, tone, summary, target_words, target_chapters } }), 'Details saved');
+    const { title, subtitle, book_type, genre, audience, style, tone, summary, target_words, target_chapters, author_name, reader_outcome, key_message, pov, pacing, themes, dialect, writing_sample } = f;
+    run(
+      'details',
+      () =>
+        api(`/api/books/${book.id}`, {
+          method: 'PATCH',
+          body: { title, subtitle, book_type, genre, audience, style, tone, summary, target_words, target_chapters, author_name, reader_outcome, key_message, pov, pacing, themes: themes ?? [], dialect, writing_sample },
+        }),
+      'Details saved',
+    );
   };
 
   const move = (i: number, dir: -1 | 1) => {
@@ -125,6 +133,7 @@ export function Overview({ book, chapters, progress }: { book: Book; chapters: C
           <p className="text-[13px] text-ink-muted">The AI uses these every time it writes or edits.</p>
           <Field label="Title" htmlFor="t"><input id="t" className="field" required value={f.title} onChange={(e) => set('title', e.target.value)} /></Field>
           <Field label="Subtitle" htmlFor="st"><input id="st" className="field" value={f.subtitle} onChange={(e) => set('subtitle', e.target.value)} /></Field>
+          <Field label="Author name for this book" htmlFor="an" hint="Pen names are fine. Leave empty to use your profile name."><input id="an" className="field" value={f.author_name ?? ''} onChange={(e) => set('author_name', e.target.value)} /></Field>
           <Field label="Genre" htmlFor="g">
             <select id="g" className="field" value={f.genre} onChange={(e) => set('genre', e.target.value)}>
               {!GENRES[f.book_type].includes(f.genre) && <option>{f.genre}</option>}
@@ -135,6 +144,35 @@ export function Overview({ book, chapters, progress }: { book: Book; chapters: C
           <Field label="Style" htmlFor="s"><input id="s" className="field" value={f.style} onChange={(e) => set('style', e.target.value)} /></Field>
           <Field label="Tone" htmlFor="to"><input id="to" className="field" value={f.tone} onChange={(e) => set('tone', e.target.value)} /></Field>
           <Field label="Summary" htmlFor="su"><textarea id="su" className="field min-h-[110px]" value={f.summary} onChange={(e) => set('summary', e.target.value)} /></Field>
+          <Field label="What readers should gain" htmlFor="ro"><textarea id="ro" className="field min-h-[70px]" value={f.reader_outcome ?? ''} onChange={(e) => set('reader_outcome', e.target.value)} /></Field>
+          <Field label="The one key message" htmlFor="km"><input id="km" className="field" value={f.key_message ?? ''} onChange={(e) => set('key_message', e.target.value)} /></Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Point of view" htmlFor="pov">
+              <select id="pov" className="field" value={f.pov ?? ''} onChange={(e) => set('pov', e.target.value)}>
+                <option value="">Not set</option>
+                {POVS.map((p) => <option key={p}>{p}</option>)}
+              </select>
+            </Field>
+            <Field label="Pacing" htmlFor="pac">
+              <select id="pac" className="field" value={f.pacing ?? ''} onChange={(e) => set('pacing', e.target.value)}>
+                <option value="">Not set</option>
+                {PACING.map((p) => <option key={p}>{p}</option>)}
+              </select>
+            </Field>
+          </div>
+          <Field label="Spelling" htmlFor="dia">
+            <select id="dia" className="field" value={f.dialect ?? 'US English'} onChange={(e) => set('dialect', e.target.value)}>
+              {DIALECTS.map((d) => <option key={d}>{d}</option>)}
+            </select>
+          </Field>
+          <Field label="Themes and keywords" htmlFor="th" hint="Separate with commas.">
+            <input id="th" className="field" value={(f.themes ?? []).join(', ')} onChange={(e) => set('themes', e.target.value.split(',').map((x) => x.trimStart()).filter((x, i, a) => x || i === a.length - 1))} />
+          </Field>
+          <div id="writing-sample" className="scroll-mt-24">
+            <Field label="Your writing sample" htmlFor="ws" hint="Paste a page or two you’ve written. When “Write in my style” is on, the AI matches your voice.">
+              <textarea id="ws" className="field min-h-[120px]" value={f.writing_sample ?? ''} onChange={(e) => set('writing_sample', e.target.value)} />
+            </Field>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Target words" htmlFor="tw"><input id="tw" type="number" className="field" min={500} value={f.target_words} onChange={(e) => set('target_words', Number(e.target.value))} /></Field>
             <Field label="Chapters" htmlFor="tc"><input id="tc" type="number" className="field" min={1} value={f.target_chapters} onChange={(e) => set('target_chapters', Number(e.target.value))} /></Field>

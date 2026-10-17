@@ -4,8 +4,8 @@ import { BookCard } from './book-card';
 import { ButtonLink, Empty, PageHeader } from './ui';
 
 export async function BookList({ title, intro, link, action }: { title: string; intro: string; link: (id: string) => string; action: string }) {
-  const { supabase, profile } = await getViewer();
-  const books = await listBooks(supabase);
+  const { supabase, user, profile } = await getViewer();
+  const books = await listBooks(supabase, user.id);
   const urls = await signedCoverUrls(supabase, books.map((b) => b.cover_path));
   const plan = getPlan(profile.plan);
   const atLimit = plan.bookLimit !== null && books.length >= plan.bookLimit;
