@@ -24,9 +24,9 @@ export default async function NewBook() {
     );
   }
   return (
-    <div className="mx-auto max-w-[720px]">
-      <PageHeader title="New book">Tell us about your book. You can change any of this later.</PageHeader>
-      <NewBookForm />
+    <div className="mx-auto max-w-[820px]">
+      <PageHeader title="New book">Build your book with the AI wizard, or import a manuscript you’ve already written. You can change everything later.</PageHeader>
+      <NewBookForm defaultAuthor={profile.pen_name || profile.full_name || ''} />
     </div>
   );
 }

@@ -3,65 +3,117 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { clsx } from 'clsx';
-import { Check, Circle, Copy, Sparkles } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Circle, Copy, Sparkles, X } from 'lucide-react';
 import type { Book } from '@/lib/api';
 import { api, errorText } from '@/lib/client';
+import { BISAC, EDITIONS, LANGUAGES, PLATFORMS, ebookRoyalty, minPrintPrice, printCost, printRoyalty, type PlatformId } from '@/lib/publishing';
+import { VOICES, type VoiceId } from '@/lib/audiobook';
 import { Badge, Button, Field, PageHeader } from '@/components/ui';
 import { useToast } from '@/components/toast';
 
 type CheckItem = { id: string; label: string; ok: boolean; fix: string; link: string };
-type Submission = { id: string; status: string; platforms: string[]; formats: string[]; price: number; isbn: string | null; reviewer_notes: string; history: { status: string; at: string; note?: string }[]; created_at: string };
+type Submission = {
+  id: string; status: string; platforms: string[]; formats: string[]; price: number; print_price: number | null; isbn: string | null; reviewer_notes: string;
+  history: { status: string; at: string; note?: string }[]; created_at: string; publish_at: string | null; language: string; edition: string; category: string;
+};
+type Format = 'ebook' | 'paperback' | 'audiobook';
 
-const STORES: Record<string, string> = { amazon_kdp: 'Amazon Kindle and paperback', apple_books: 'Apple Books', kobo: 'Kobo', barnes_noble: 'Barnes & Noble', google_play: 'Google Play Books', ingramspark: 'IngramSpark (bookshops and libraries)' };
+const STEPS = ['Checklist', 'Formats', 'Platforms', 'Details', 'Review'] as const;
 const STAGES = [
-  ['submitted', 'Submitted'],
-  ['in_review', 'Reviewed by our team'],
+  ['submitted', 'Book submitted for review'],
+  ['in_review', 'Internal review'],
   ['formatting', 'Prepared for the stores'],
-  ['publishing', 'Sent to the stores'],
-  ['live', 'Live'],
+  ['publishing', 'Publishing to stores'],
+  ['live', 'Live on all selected stores'],
 ] as const;
+const FORMAT_INFO: Record<Format, { label: string; note: string }> = {
+  ebook: { label: 'Ebook (EPUB and Kindle)', note: 'Digital edition for Kindle, Apple Books, Kobo and all e-readers' },
+  paperback: { label: 'Print on demand', note: 'A paperback printed and shipped as each copy is ordered' },
+  audiobook: { label: 'Audiobook', note: 'Your AI-narrated audiobook from the Audiobook tab' },
+};
 
-export function Publish({ book }: { book: Book }) {
+interface Draft {
+  formats: Format[];
+  platforms: PlatformId[];
+  blurb: string;
+  keywords: string[];
+  category: string;
+  categories: string[];
+  language: string;
+  edition: string;
+  price: number;
+  print_price: number;
+  when: 'now' | 'later';
+  date: string;
+}
+
+const key = (id: string) => `ap:publish:${id}`;
+
+export function Publish({ book, voice }: { book: Book; voice: string | null }) {
   const router = useRouter();
   const toast = useToast();
-  const [kit, setKit] = useState({ blurb: book.blurb, keywords: [...book.keywords, ...Array(7).fill('')].slice(0, 7), categories: [...book.categories, '', '', ''].slice(0, 3), author_bio: book.author_bio });
-  const [extra, setExtra] = useState<{ tagline?: string; social_posts?: string[] }>({});
-  const [busy, setBusy] = useState('');
-  const [formats, setFormats] = useState<string[]>(['ebook', 'paperback']);
-  const [stores, setStores] = useState<string[]>(['amazon_kdp']);
-  const [price, setPrice] = useState(4.99);
+  const pages = book.page_count ?? 0;
+  const initial: Draft = {
+    formats: ['ebook', 'paperback'],
+    platforms: ['amazon_kdp', 'amazon_kdp_print'],
+    blurb: book.blurb,
+    keywords: book.keywords ?? [],
+    category: '',
+    categories: book.categories ?? [],
+    language: book.language || 'English',
+    edition: book.edition || 'First Edition',
+    price: 4.99,
+    print_price: minPrintPrice(pages),
+    when: 'now',
+    date: '',
+  };
+  const [d, setD] = useState<Draft>(initial);
+  const [step, setStep] = useState(0);
+  const [resume, setResume] = useState<{ step: number; d: Draft } | null>(null);
   const [checks, setChecks] = useState<CheckItem[] | null>(null);
-  const [subs, setSubs] = useState<Submission[]>([]);
+  const [subs, setSubs] = useState<Submission[] | null>(null);
+  const [busy, setBusy] = useState('');
+  const [extra, setExtra] = useState<{ tagline?: string; social_posts?: string[] }>({});
+  const [kw, setKw] = useState('');
+  const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD((x) => ({ ...x, [k]: v }));
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(key(book.id));
+      if (raw) setResume(JSON.parse(raw));
+    } catch {}
+  }, [book.id]);
+  useEffect(() => {
+    if (step === 0 && JSON.stringify(d) === JSON.stringify(initial)) return;
+    try {
+      localStorage.setItem(key(book.id), JSON.stringify({ step, d }));
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, d, book.id]);
 
   const refresh = useCallback(async () => {
-    const r = await api<{ checks: CheckItem[]; submissions: Submission[] }>(`/api/books/${book.id}/submit?formats=${formats.join(',')}`);
+    const r = await api<{ checks: CheckItem[]; submissions: Submission[] }>(`/api/books/${book.id}/submit?formats=${d.formats.join(',')}`);
     setChecks(r.checks);
     setSubs(r.submissions);
-  }, [book.id, formats]);
-  useEffect(() => { refresh().catch(() => {}); }, [refresh]);
+  }, [book.id, d.formats]);
+  useEffect(() => { refresh().catch(() => setSubs([])); }, [refresh]);
+
+  function toggleFormat(f: Format) {
+    const formats = d.formats.includes(f) ? d.formats.filter((x) => x !== f) : [...d.formats, f];
+    const platforms = d.platforms.filter((p) => (PLATFORMS[p].formats as readonly string[]).some((x) => formats.includes(x as Format)));
+    setD((x) => ({ ...x, formats, platforms }));
+  }
+  const available = (Object.keys(PLATFORMS) as PlatformId[]).filter((p) => (PLATFORMS[p].formats as readonly string[]).some((x) => d.formats.includes(x as Format)));
 
   async function generate() {
     setBusy('gen');
     try {
-      const r = await api<{ blurb: string; keywords: string[]; categories: string[]; author_bio: string; tagline: string; social_posts: string[] }>(`/api/books/${book.id}/publishing-kit`, {
-        body: { fields: ['blurb', 'keywords', 'categories', 'author_bio', 'tagline', 'social_posts'] },
+      const r = await api<{ blurb: string; keywords: string[]; categories: string[]; tagline: string; social_posts: string[] }>(`/api/books/${book.id}/publishing-kit`, {
+        body: { fields: ['blurb', 'keywords', 'categories', 'tagline', 'social_posts'] },
       });
-      setKit({ blurb: r.blurb, keywords: [...r.keywords, ...Array(7).fill('')].slice(0, 7), categories: [...r.categories, '', '', ''].slice(0, 3), author_bio: r.author_bio });
+      setD((x) => ({ ...x, blurb: r.blurb, keywords: r.keywords.slice(0, 7), categories: r.categories }));
       setExtra({ tagline: r.tagline, social_posts: r.social_posts });
-      toast('Publishing kit written and saved');
-      refresh();
-    } catch (e) {
-      toast(errorText(e), 'error');
-    }
-    setBusy('');
-  }
-
-  async function saveKit() {
-    setBusy('save');
-    try {
-      await api(`/api/books/${book.id}`, { method: 'PATCH', body: { blurb: kit.blurb, keywords: kit.keywords.map((k) => k.trim()).filter(Boolean), categories: kit.categories.map((c) => c.trim()).filter(Boolean), author_bio: kit.author_bio } });
-      toast('Saved');
-      refresh();
+      toast('Description, keywords and categories written');
     } catch (e) {
       toast(errorText(e), 'error');
     }
@@ -71,9 +123,24 @@ export function Publish({ book }: { book: Book }) {
   async function submit() {
     setBusy('submit');
     try {
-      await api(`/api/books/${book.id}/submit`, { body: { platforms: stores, formats, price } });
-      toast('Submitted. We’ll keep you posted at every step.');
-      refresh();
+      await api(`/api/books/${book.id}`, { method: 'PATCH', body: { blurb: d.blurb, keywords: d.keywords, categories: d.categories.length ? d.categories : d.category ? [d.category] : [], language: d.language, edition: d.edition } });
+      await api(`/api/books/${book.id}/submit`, {
+        body: {
+          formats: d.formats,
+          platforms: d.platforms,
+          price: d.price,
+          print_price: d.formats.includes('paperback') ? d.print_price : undefined,
+          language: d.language,
+          edition: d.edition,
+          category: d.category,
+          publish_at: d.when === 'later' && d.date ? new Date(d.date).toISOString() : null,
+          narration_voice: d.formats.includes('audiobook') ? voice ?? undefined : undefined,
+        },
+      });
+      try { localStorage.removeItem(key(book.id)); } catch {}
+      toast('Book submitted. We’ll keep you posted at every step.');
+      setStep(0);
+      await refresh();
       router.refresh();
     } catch (e) {
       toast(errorText(e), 'error');
@@ -81,41 +148,248 @@ export function Publish({ book }: { book: Book }) {
     setBusy('');
   }
 
-  const active = subs.find((s) => s.status !== 'live' && s.status !== 'changes_requested');
-  const ready = checks?.every((c) => c.ok);
+  if (!subs) return <p className="text-ink-muted">Loading…</p>;
+  const active = subs.find((s) => !['live', 'changes_requested', 'rejected'].includes(s.status));
+  const latest = subs[0];
+  // The description and keywords are written in the Details step, so they don't block the checklist.
+  const LATER = ['blurb', 'keywords'];
+  const ready = checks?.filter((c) => !LATER.includes(c.id)).every((c) => c.ok);
+  const minPrint = minPrintPrice(pages);
+  const descLen = d.blurb.trim().length;
+  const stepOk = [
+    !!ready,
+    d.formats.length > 0,
+    d.platforms.length > 0,
+    descLen >= 100 && descLen <= 4000 && !!d.category && d.keywords.length > 0 && d.price >= 0.99 && (!d.formats.includes('paperback') || d.print_price >= minPrint) && (d.when === 'now' || !!d.date),
+    true,
+  ];
 
   return (
-    <div className="grid gap-10 lg:grid-cols-[1fr_380px]">
+    <div className="grid gap-10 lg:grid-cols-[1fr_340px]">
       <section>
-        <PageHeader title="Publishing kit" actions={<Button variant="secondary" onClick={generate} loading={busy === 'gen'}><Sparkles className="h-4 w-4" />Write it all with AI</Button>}>
-          The description, keywords and categories the stores ask for. AI drafts them from your book; edit anything before you submit.
-        </PageHeader>
-        <div className="panel space-y-5 p-5">
-          <Field label="Book description" htmlFor="blurb" hint={`${kit.blurb.trim().split(/\s+/).filter(Boolean).length} words. 150–250 works best on store pages.`}>
-            <textarea id="blurb" className="field min-h-[180px]" value={kit.blurb} onChange={(e) => setKit({ ...kit, blurb: e.target.value })} />
-          </Field>
-          <div>
-            <p className="label">Keywords (Amazon allows 7)</p>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {kit.keywords.map((k, i) => (
-                <input key={i} aria-label={`Keyword ${i + 1}`} className="field" maxLength={50} value={k} onChange={(e) => setKit({ ...kit, keywords: kit.keywords.map((x, j) => (j === i ? e.target.value : x)) })} />
+        <PageHeader title="Publish your book" />
+
+        {active ? (
+          <p className="panel p-4 text-[14px]">This book is with our publishing team. Follow its progress on the right.</p>
+        ) : (
+          <>
+            {resume && (
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-md border border-gilt/40 bg-gilt-light px-4 py-3 text-[14px]">
+                <span>You have an unfinished publishing setup for this book.</span>
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={() => { setD({ ...initial, ...resume.d }); setStep(resume.step); setResume(null); }}>Resume</Button>
+                  <Button size="sm" variant="secondary" onClick={() => { try { localStorage.removeItem(key(book.id)); } catch {} setResume(null); }}>Start over</Button>
+                </div>
+              </div>
+            )}
+            {latest?.status === 'changes_requested' && (
+              <div className="mb-4 rounded-md border border-gilt/40 bg-gilt-light p-4 text-[14px]">
+                <p className="font-medium">Changes required before publishing</p>
+                {latest.reviewer_notes && <p className="mt-1 whitespace-pre-wrap"><span className="font-medium">Note from our team:</span> {latest.reviewer_notes}</p>}
+                <p className="mt-1 text-ink-muted">Please make the changes, then submit your book again.</p>
+              </div>
+            )}
+            {latest?.status === 'rejected' && (
+              <div className="mb-4 rounded-md border border-danger/30 bg-danger-light p-4 text-[14px]">
+                <p className="font-medium">Submission not approved</p>
+                {latest.reviewer_notes && <p className="mt-1 whitespace-pre-wrap">{latest.reviewer_notes}</p>}
+              </div>
+            )}
+
+            <ol className="mb-6 flex flex-wrap gap-1.5 text-[13px]">
+              {STEPS.map((s, i) => (
+                <li key={s}>
+                  <button
+                    onClick={() => (i <= step || stepOk.slice(0, i).every(Boolean) ? setStep(i) : null)}
+                    aria-current={i === step ? 'step' : undefined}
+                    className={clsx('rounded-full border px-3 py-1', i === step ? 'border-cloth bg-cloth text-white' : i < step ? 'border-cloth/40 bg-cloth-light text-cloth-dark' : 'border-line bg-sheet text-ink-muted')}
+                  >
+                    {i + 1}. {s}
+                  </button>
+                </li>
               ))}
+            </ol>
+
+            <div className="panel space-y-4 p-5">
+              {step === 0 && (
+                <>
+                  <h2>Is your book ready to publish?</h2>
+                  <p className="text-[14px] text-ink-muted">Complete every item before submitting your book for review. The list depends on the formats you choose in the next step.</p>
+                  {checks ? (
+                    <ul className="space-y-2 text-[14px]">
+                      {checks.map((c) => (
+                        <li key={c.id} className="flex items-start gap-2">
+                          {c.ok ? <Check className="mt-0.5 h-4 w-4 shrink-0 text-cloth" /> : <Circle className="mt-0.5 h-4 w-4 shrink-0 text-gilt" />}
+                          <span className="flex-1">{c.label}{!c.ok && <span className="block text-ink-muted">{LATER.includes(c.id) ? 'You’ll do this in step 4, Details. The AI can write it for you.' : c.fix}</span>}</span>
+                          {!c.ok && !LATER.includes(c.id) && <Link href={c.link} className="shrink-0 text-cloth underline">Fix now</Link>}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-ink-muted">Checking…</p>
+                  )}
+                  {ready && <p className="rounded bg-cloth-light px-3 py-2 text-[14px] text-cloth-dark">Checklist complete. Your book is ready to publish.</p>}
+                </>
+              )}
+
+              {step === 1 && (
+                <>
+                  <h2>Choose your formats</h2>
+                  <p className="text-[14px] text-ink-muted">Publish in as many formats as you like.</p>
+                  <div className="grid gap-2">
+                    {(Object.keys(FORMAT_INFO) as Format[]).map((f) => (
+                      <label key={f} className={clsx('flex cursor-pointer gap-3 rounded border p-3', d.formats.includes(f) ? 'border-cloth bg-cloth-light/60' : 'border-line')}>
+                        <input type="checkbox" className="mt-1 accent-cloth" checked={d.formats.includes(f)} onChange={() => toggleFormat(f)} />
+                        <span><span className="block font-medium">{FORMAT_INFO[f].label}</span><span className="text-[13px] text-ink-muted">{FORMAT_INFO[f].note}</span></span>
+                      </label>
+                    ))}
+                  </div>
+                  {d.formats.includes('audiobook') && (
+                    <p className="text-[14px]">
+                      Narration voice: <strong>{voice ? VOICES[voice as VoiceId]?.label ?? voice : 'not chosen yet'}</strong>. <Link href={`/dashboard/books/${book.id}/audiobook`} className="text-cloth underline">Change on the Audiobook tab</Link>
+                    </p>
+                  )}
+                </>
+              )}
+
+              {step === 2 && (
+                <>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h2>Choose your stores</h2>
+                    <Button size="sm" variant="ghost" onClick={() => set('platforms', available)}>Select all available</Button>
+                  </div>
+                  {(['ebook', 'paperback', 'audiobook'] as Format[]).filter((f) => d.formats.includes(f)).map((f) => (
+                    <fieldset key={f}>
+                      <legend className="label">{FORMAT_INFO[f].label}</legend>
+                      <div className="grid gap-1.5 sm:grid-cols-2">
+                        {available.filter((p) => (PLATFORMS[p].formats as readonly string[]).includes(f)).map((p) => (
+                          <label key={p} className="flex items-center gap-2 text-[14px]">
+                            <input type="checkbox" className="accent-cloth" checked={d.platforms.includes(p)} onChange={(e) => set('platforms', e.target.checked ? [...d.platforms, p] : d.platforms.filter((x) => x !== p))} />
+                            {PLATFORMS[p].label}
+                          </label>
+                        ))}
+                      </div>
+                    </fieldset>
+                  ))}
+                </>
+              )}
+
+              {step === 3 && (
+                <>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <h2>Final details</h2>
+                      <p className="text-[14px] text-ink-muted">This appears on your book’s page in every store.</p>
+                    </div>
+                    <Button size="sm" variant="secondary" onClick={generate} loading={busy === 'gen'}><Sparkles className="h-4 w-4" />Write description and keywords with AI</Button>
+                  </div>
+                  <Field label="Book description" htmlFor="desc" hint={`${descLen} characters. What readers see on Amazon and other stores: 100–4,000 characters.`} error={descLen > 4000 ? 'That’s over 4,000 characters.' : undefined}>
+                    <textarea id="desc" className="field min-h-[180px]" placeholder="Write a description that hooks readers in the first line…" value={d.blurb} onChange={(e) => set('blurb', e.target.value)} />
+                  </Field>
+                  <div>
+                    <label htmlFor="kw" className="label">Keywords ({d.keywords.length} of 7)</label>
+                    <div className="flex flex-wrap items-center gap-1.5 rounded border border-line bg-sheet p-2">
+                      {d.keywords.map((k) => (
+                        <span key={k} className="inline-flex items-center gap-1 rounded-full bg-cloth-light px-2.5 py-0.5 text-[13px] text-cloth-dark">
+                          {k}<button type="button" aria-label={`Remove ${k}`} onClick={() => set('keywords', d.keywords.filter((x) => x !== k))}><X className="h-3 w-3" /></button>
+                        </span>
+                      ))}
+                      {d.keywords.length < 7 && (
+                        <input
+                          id="kw"
+                          className="min-w-[180px] flex-1 bg-transparent px-1 py-1 text-[14px] outline-none"
+                          placeholder="Add a keyword and press Enter"
+                          maxLength={50}
+                          value={kw}
+                          onChange={(e) => setKw(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && kw.trim()) {
+                              e.preventDefault();
+                              if (!d.keywords.includes(kw.trim())) set('keywords', [...d.keywords, kw.trim()]);
+                              setKw('');
+                            }
+                          }}
+                        />
+                      )}
+                    </div>
+                    <p className="hint">Help readers find your book. Amazon allows up to 7.</p>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <Field label="Category" htmlFor="cat">
+                      <select id="cat" className="field" value={d.category} onChange={(e) => set('category', e.target.value)}>
+                        <option value="">Select a category</option>
+                        {BISAC.map((c) => <option key={c}>{c}</option>)}
+                      </select>
+                    </Field>
+                    <Field label="Language" htmlFor="lang">
+                      <select id="lang" className="field" value={d.language} onChange={(e) => set('language', e.target.value)}>{LANGUAGES.map((l) => <option key={l}>{l}</option>)}</select>
+                    </Field>
+                    <Field label="Edition" htmlFor="ed">
+                      <select id="ed" className="field" value={d.edition} onChange={(e) => set('edition', e.target.value)}>{EDITIONS.map((l) => <option key={l}>{l}</option>)}</select>
+                    </Field>
+                  </div>
+                  {d.categories.length > 0 && (
+                    <p className="text-[13px] text-ink-muted">More specific categories (from AI): {d.categories.join(' · ')}</p>
+                  )}
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {(d.formats.includes('ebook') || d.formats.includes('audiobook')) && (
+                      <Field label="Ebook price (USD)" htmlFor="ep" hint={`Min $0.99. You’d earn about $${ebookRoyalty(d.price).toFixed(2)} per Kindle sale${d.price >= 2.99 && d.price <= 9.99 ? ' (70% royalty)' : ' (35% royalty: $2.99–$9.99 earns 70%)'}.`}>
+                        <input id="ep" type="number" min={0.99} step={0.01} className="field" value={d.price} onChange={(e) => set('price', Number(e.target.value))} />
+                      </Field>
+                    )}
+                    {d.formats.includes('paperback') && (
+                      <Field
+                        label="Paperback price (USD)"
+                        htmlFor="pp"
+                        hint={`Min $${minPrint.toFixed(2)}. Printing costs about $${printCost(pages || 200).toFixed(2)}${pages ? '' : ' (estimated)'}; you’d earn about $${Math.max(0, printRoyalty(d.print_price, pages)).toFixed(2)} per Amazon sale.`}
+                        error={d.print_price < minPrint ? `Set at least $${minPrint.toFixed(2)} to cover printing.` : undefined}
+                      >
+                        <input id="pp" type="number" min={minPrint} step={0.01} className="field" value={d.print_price} onChange={(e) => set('print_price', Number(e.target.value))} />
+                      </Field>
+                    )}
+                  </div>
+                  <fieldset className="space-y-2">
+                    <legend className="label">Publishing date</legend>
+                    <label className="flex items-center gap-2 text-[14px]"><input type="radio" name="when" className="accent-cloth" checked={d.when === 'now'} onChange={() => set('when', 'now')} />Publish as soon as it’s approved</label>
+                    <label className="flex items-center gap-2 text-[14px]"><input type="radio" name="when" className="accent-cloth" checked={d.when === 'later'} onChange={() => set('when', 'later')} />Schedule for later</label>
+                    {d.when === 'later' && <input type="date" aria-label="Publishing date" className="field w-auto" min={new Date(Date.now() + 86400000).toISOString().slice(0, 10)} value={d.date} onChange={(e) => set('date', e.target.value)} />}
+                  </fieldset>
+                </>
+              )}
+
+              {step === 4 && (
+                <>
+                  <h2>Everything look right?</h2>
+                  <p className="text-[14px] text-ink-muted">Check your details before sending your book for review.</p>
+                  <dl className="grid gap-x-6 gap-y-2 text-[14px] sm:grid-cols-[160px_1fr]">
+                    <dt className="text-ink-muted">Formats</dt><dd>{d.formats.map((f) => FORMAT_INFO[f].label).join(', ')}</dd>
+                    <dt className="text-ink-muted">Stores</dt><dd>{d.platforms.map((p) => PLATFORMS[p].label.split(' (')[0]).join(', ')}</dd>
+                    <dt className="text-ink-muted">Price</dt><dd>Ebook ${d.price.toFixed(2)}{d.formats.includes('paperback') && ` · Paperback $${d.print_price.toFixed(2)}`}</dd>
+                    <dt className="text-ink-muted">Category</dt><dd>{d.category}</dd>
+                    <dt className="text-ink-muted">Keywords</dt><dd>{d.keywords.join(', ')}</dd>
+                    <dt className="text-ink-muted">Language and edition</dt><dd>{d.language}, {d.edition}</dd>
+                    <dt className="text-ink-muted">Publishing</dt><dd>{d.when === 'later' && d.date ? new Date(d.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'As soon as it’s approved'}</dd>
+                    {d.formats.includes('audiobook') && <><dt className="text-ink-muted">Narration</dt><dd>{voice ? VOICES[voice as VoiceId]?.label : '—'}</dd></>}
+                    <dt className="text-ink-muted">Description</dt><dd className="whitespace-pre-wrap">{d.blurb}</dd>
+                  </dl>
+                  {!ready && <p className="text-[14px] text-danger">Some checklist items are still open. Go back to step 1 to finish them.</p>}
+                </>
+              )}
             </div>
-          </div>
-          <div>
-            <p className="label">Categories</p>
-            <div className="space-y-2">
-              {kit.categories.map((c, i) => (
-                <input key={i} aria-label={`Category ${i + 1}`} className="field" placeholder="e.g. Biography & Autobiography / Sports" value={c} onChange={(e) => setKit({ ...kit, categories: kit.categories.map((x, j) => (j === i ? e.target.value : x)) })} />
-              ))}
+
+            <div className="mt-4 flex justify-between">
+              <Button variant="secondary" onClick={() => setStep(step - 1)} disabled={step === 0}><ArrowLeft className="h-4 w-4" />Back</Button>
+              {step < 4 ? (
+                <Button onClick={() => setStep(step + 1)} disabled={!stepOk[step]}>Continue to {STEPS[step + 1].toLowerCase()}<ArrowRight className="h-4 w-4" /></Button>
+              ) : (
+                <Button onClick={submit} loading={busy === 'submit'} disabled={!stepOk.every(Boolean)}>Submit for review</Button>
+              )}
             </div>
-          </div>
-          <Field label="About the author" htmlFor="bio"><textarea id="bio" className="field min-h-[100px]" value={kit.author_bio} onChange={(e) => setKit({ ...kit, author_bio: e.target.value })} /></Field>
-          <Button onClick={saveKit} loading={busy === 'save'}>Save</Button>
-        </div>
+          </>
+        )}
 
         {(extra.tagline || extra.social_posts?.length) && (
-          <div className="mt-6 space-y-3">
+          <div className="mt-8 space-y-3">
             <h2>Launch posts</h2>
             {extra.tagline && <p className="font-serif text-[1.2rem] italic">{extra.tagline}</p>}
             <ul className="space-y-2">
@@ -130,89 +404,44 @@ export function Publish({ book }: { book: Book }) {
         )}
       </section>
 
-      <aside className="space-y-6">
-        {subs.length > 0 && (
+      <aside>
+        {latest ? (
           <div className="panel p-4">
-            <h3 className="mb-3">Publishing status</h3>
-            {subs.slice(0, 1).map((s) => {
-              const reached = new Set(s.history.map((h) => h.status));
-              return (
-                <div key={s.id}>
-                  {s.status === 'changes_requested' && (
-                    <div className="mb-3 rounded-md border border-gilt/40 bg-gilt-light p-3 text-[14px]">
-                      <p className="font-medium">Our team asked for changes</p>
-                      {s.reviewer_notes && <p className="mt-1 whitespace-pre-wrap">{s.reviewer_notes}</p>}
-                      <p className="mt-1 text-ink-muted">Make the changes, then submit again below.</p>
-                    </div>
-                  )}
-                  <ol className="space-y-3">
-                    {STAGES.map(([k, label]) => {
-                      const h = [...s.history].reverse().find((x) => x.status === k);
-                      const done = reached.has(k);
-                      return (
-                        <li key={k} className="flex gap-3 text-[14px]">
-                          {done ? <Check className="mt-0.5 h-4 w-4 text-cloth" /> : <Circle className="mt-0.5 h-4 w-4 text-line-strong" />}
-                          <div>
-                            <p className={clsx(!done && 'text-ink-muted')}>{label}</p>
-                            {h && <p className="text-[12px] text-ink-muted">{new Date(h.at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>}
-                          </div>
-                        </li>
-                      );
-                    })}
-                  </ol>
-                  {s.isbn && <p className="mt-3 text-[14px]">ISBN: <span className="font-medium">{s.isbn}</span></p>}
-                  <p className="mt-3 text-[13px] text-ink-muted">{s.formats.join(' and ')} on {s.platforms.map((p) => STORES[p]?.split(' (')[0] ?? p).join(', ')} at ${Number(s.price).toFixed(2)}</p>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {!active && (
-          <div className="panel space-y-4 p-4">
-            <h3>Submit for publishing</h3>
-            <fieldset>
-              <legend className="label">Formats</legend>
-              <div className="flex gap-2">
-                {(['ebook', 'paperback'] as const).map((f) => (
-                  <button key={f} type="button" className="chip" aria-pressed={formats.includes(f)} onClick={() => setFormats(formats.includes(f) ? formats.filter((x) => x !== f) : [...formats, f])}>{f === 'ebook' ? 'Ebook' : 'Paperback'}</button>
-                ))}
-              </div>
-            </fieldset>
-            <fieldset>
-              <legend className="label">Stores</legend>
-              <div className="space-y-1.5 text-[14px]">
-                {Object.entries(STORES).map(([k, v]) => (
-                  <label key={k} className="flex items-center gap-2">
-                    <input type="checkbox" className="accent-cloth" checked={stores.includes(k)} onChange={(e) => setStores(e.target.checked ? [...stores, k] : stores.filter((x) => x !== k))} />{v}
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-            <Field label="Ebook price (USD)" htmlFor="price" hint="Amazon pays 70% royalty between $2.99 and $9.99.">
-              <input id="price" type="number" min={0.99} step={0.01} className="field" value={price} onChange={(e) => setPrice(Number(e.target.value))} />
-            </Field>
-            <div>
-              <p className="label">Before you submit</p>
-              {checks ? (
-                <ul className="space-y-2 text-[14px]">
-                  {checks.map((c) => (
-                    <li key={c.id} className="flex gap-2">
-                      {c.ok ? <Check className="mt-0.5 h-4 w-4 shrink-0 text-cloth" /> : <Circle className="mt-0.5 h-4 w-4 shrink-0 text-gilt" />}
-                      <span>
-                        {c.label}
-                        {!c.ok && <> · <Link href={c.link} className="text-cloth underline">{c.fix}</Link></>}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-[14px] text-ink-muted">Checking…</p>
-              )}
+            <div className="mb-3 flex items-center justify-between">
+              <h3>Publishing status</h3>
+              <Badge tone={latest.status === 'live' ? 'cloth' : ['rejected', 'failed', 'changes_requested'].includes(latest.status) ? 'danger' : 'gilt'}>
+                {{ submitted: 'Submitted', in_review: 'In review', changes_requested: 'Changes requested', formatting: 'Formatting', publishing: 'Publishing', live: 'Live', rejected: 'Not approved', failed: 'Problem at the stores' }[latest.status] ?? latest.status}
+              </Badge>
             </div>
-            <Button className="w-full" onClick={submit} loading={busy === 'submit'} disabled={!ready || !stores.length || !formats.length}>Submit for publishing</Button>
-            {!ready && checks && <Badge tone="gilt">{checks.filter((c) => !c.ok).length} steps left</Badge>}
+            <ol className="space-y-3">
+              {STAGES.map(([k, label]) => {
+                const h = [...latest.history].reverse().find((x) => x.status === k);
+                return (
+                  <li key={k} className="flex gap-3 text-[14px]">
+                    {h ? <Check className="mt-0.5 h-4 w-4 text-cloth" /> : <Circle className="mt-0.5 h-4 w-4 text-line-strong" />}
+                    <div>
+                      <p className={clsx(!h && 'text-ink-muted')}>{label}</p>
+                      {h && <p className="text-[12px] text-ink-muted">{new Date(h.at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>}
+                      {h?.note && <p className="mt-0.5 text-[12px] text-ink-soft">{h.note}</p>}
+                    </div>
+                  </li>
+                );
+              })}
+              {latest.isbn && (
+                <li className="flex gap-3 text-[14px]"><Check className="mt-0.5 h-4 w-4 text-cloth" /><div><p>ISBN registered</p><p className="text-[12px] text-ink-muted">{latest.isbn}</p></div></li>
+              )}
+            </ol>
+            {latest.status === 'failed' && latest.reviewer_notes && <p className="mt-3 rounded bg-danger-light p-2 text-[13px]">{latest.reviewer_notes}</p>}
+            <p className="mt-3 text-[13px] text-ink-muted">
+              {latest.formats.join(', ')} · {latest.platforms.map((p) => PLATFORMS[p as PlatformId]?.label.split(' (')[0] ?? p).join(', ')}
+              {latest.publish_at && ` · scheduled for ${new Date(latest.publish_at).toLocaleDateString('en-GB')}`}
+            </p>
+            {latest.status === 'live' && (
+              <a className="mt-3 inline-block text-[14px] text-cloth underline" target="_blank" rel="noreferrer" href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`My book “${book.title}” is out now!`)}`}>Share on X (Twitter)</a>
+            )}
           </div>
+        ) : (
+          <div className="panel p-4 text-[14px] text-ink-muted">Once you submit, you can follow your book here: review, preparation for the stores and going live.</div>
         )}
       </aside>
     </div>

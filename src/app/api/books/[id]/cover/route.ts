@@ -2,45 +2,58 @@ import { handle, json, requireUser, requireBook } from '@/lib/api';
 import { DEFAULT_BRIEF, DEFAULT_DESIGN } from '@/lib/cover';
 import { estimatePages, spineTextAllowed, wrapSize } from '@/lib/spine';
 import { TRIM_SIZES } from '@/lib/spine';
+import { getPlan } from '@/lib/plans';
 
 type Ctx = { params: { id: string } };
 
 export const GET = handle(async (_req: Request, { params }: Ctx) => {
   const { supabase } = await requireUser();
   const book = await requireBook(supabase, params.id);
-  const [{ data: cover }, { data: chapters }, { data: profile }] = await Promise.all([
+  const [{ data: cover }, { data: chapters }, { data: profile }, { data: versions }] = await Promise.all([
     supabase.from('covers').select('*').eq('book_id', book.id).maybeSingle(),
     supabase.from('chapters').select('word_count').eq('book_id', book.id),
-    supabase.from('profiles').select('full_name,pen_name').eq('id', book.user_id).single(),
+    supabase.from('profiles').select('full_name,pen_name,plan').eq('id', book.user_id).single(),
+    supabase.from('cover_versions').select('id,name,status,selected_path,pages,trim_size,paper,created_at,updated_at').eq('book_id', book.id).order('created_at', { ascending: false }),
   ]);
   const words = (chapters ?? []).reduce((s, c) => s + c.word_count, 0);
   const brief = { ...DEFAULT_BRIEF, ...(cover?.brief ?? {}) };
   const pagesSource = brief.pageCountOverride ? 'yours' : book.page_count ? 'measured' : 'estimated';
   const pages = brief.pageCountOverride ?? book.page_count ?? estimatePages(Math.max(words, book.target_words), book.trim_size, book.target_chapters);
 
+  const design = { ...DEFAULT_DESIGN, ...(cover?.design ?? {}) };
   const paths: string[] = [
     ...((cover?.concepts ?? []) as { path: string }[]).map((c) => c.path),
     ...brief.referencePaths,
     cover?.front_path,
+    cover?.front_path?.replace('cover-front.png', 'cover-ebook.jpg'),
     cover?.wrap_path,
+    cover?.social_path,
+    design.backImagePath,
+    design.authorPhotoPath,
+    design.logoPath,
+    ...(versions ?? []).map((v) => v.selected_path),
   ].filter(Boolean) as string[];
   const urls: Record<string, string> = {};
   if (paths.length) {
-    const { data } = await supabase.storage.from('covers').createSignedUrls(paths, 3600);
+    const { data } = await supabase.storage.from('covers').createSignedUrls([...new Set(paths)], 3600);
     data?.forEach((d) => d.signedUrl && d.path && (urls[d.path] = d.signedUrl));
   }
 
   return json({
     book: { id: book.id, title: book.title, subtitle: book.subtitle, genre: book.genre, summary: book.summary, blurb: book.blurb, author_bio: book.author_bio, trim_size: book.trim_size, paper: book.paper },
-    author: profile?.pen_name || profile?.full_name || '',
+    author: book.author_name || profile?.pen_name || profile?.full_name || '',
     cover: {
       brief,
-      design: { ...DEFAULT_DESIGN, ...(cover?.design ?? {}) },
+      design,
       concepts: cover?.concepts ?? [],
       selected_path: cover?.selected_path ?? null,
       front_path: cover?.front_path ?? null,
       wrap_path: cover?.wrap_path ?? null,
+      social_path: cover?.social_path ?? null,
+      generations: cover?.generations ?? 0,
+      runLimit: getPlan(profile?.plan).coverRunsPerBook,
     },
+    versions: versions ?? [],
     urls,
     geometry: { pages, pagesSource, words, ...wrapSize(book.trim_size, pages, book.paper), spineText: spineTextAllowed(pages) },
     trims: TRIM_SIZES,

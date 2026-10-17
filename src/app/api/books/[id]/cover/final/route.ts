@@ -19,11 +19,12 @@ export const POST = handle(async (req: Request, { params }: { params: { id: stri
     .object({
       frontPath: z.string(),
       wrapPath: z.string().optional(),
+      socialPath: z.string().optional(),
       wrapInches: z.object({ width: z.number().positive(), height: z.number().positive() }).optional(),
     })
     .parse(await req.json());
   const mine = (p: string) => p.startsWith(`${user.id}/${book.id}/`);
-  if (!mine(body.frontPath) || (body.wrapPath && !mine(body.wrapPath))) throw new HttpError(400, 'Invalid file.');
+  if (!mine(body.frontPath) || (body.wrapPath && !mine(body.wrapPath)) || (body.socialPath && !mine(body.socialPath))) throw new HttpError(400, 'Invalid file.');
 
   let wrapPdfPath: string | null = null;
   if (body.wrapPath && body.wrapInches) {
@@ -43,7 +44,7 @@ export const POST = handle(async (req: Request, { params }: { params: { id: stri
   }
   await supabase
     .from('covers')
-    .upsert({ book_id: book.id, user_id: user.id, front_path: body.frontPath, wrap_path: wrapPdfPath }, { onConflict: 'book_id' });
+    .upsert({ book_id: book.id, user_id: user.id, front_path: body.frontPath, wrap_path: wrapPdfPath, social_path: body.socialPath ?? null }, { onConflict: 'book_id' });
   await logActivity(user.id, 'cover.finalised', { bookId: book.id });
   return json({ ok: true, wrapPdfPath });
 });

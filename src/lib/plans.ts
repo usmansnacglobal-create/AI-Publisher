@@ -1,7 +1,7 @@
 export type PlanId = 'free' | 'pro' | 'agency';
 
 /** Paid tools. Free authors can write, use AI assist and export ebooks. */
-export type Feature = 'bible' | 'proofread' | 'print' | 'cover' | 'publish' | 'automations';
+export type Feature = 'bible' | 'proofread' | 'print' | 'cover' | 'publish' | 'audiobook' | 'automations';
 
 export const FEATURE_NAMES: Record<Feature, string> = {
   bible: 'The story bible and continuity checks',
@@ -9,6 +9,7 @@ export const FEATURE_NAMES: Record<Feature, string> = {
   print: 'Print-ready PDF interiors',
   cover: 'The AI cover designer',
   publish: 'The publishing kit and submission',
+  audiobook: 'AI audiobook narration',
   automations: 'Automations',
 };
 
@@ -19,6 +20,8 @@ export interface Plan {
   /** null = unlimited */
   bookLimit: number | null;
   monthlyTokens: number;
+  /** AI cover generation runs per book */
+  coverRunsPerBook: number;
   integrations: boolean;
   tools: Feature[];
   features: string[];
@@ -32,6 +35,7 @@ export const PLANS: Record<PlanId, Plan> = {
     priceMonthly: 0,
     bookLimit: 1,
     monthlyTokens: 30_000,
+    coverRunsPerBook: 0,
     integrations: false,
     tools: [],
     features: ['1 book', '30,000 AI tokens a month', 'Writing and AI assist', 'Ebook export'],
@@ -42,8 +46,9 @@ export const PLANS: Record<PlanId, Plan> = {
     priceMonthly: 29,
     bookLimit: 10,
     monthlyTokens: 500_000,
+    coverRunsPerBook: 3,
     integrations: false,
-    tools: ['bible', 'proofread', 'print', 'cover', 'publish'],
+    tools: ['bible', 'proofread', 'print', 'cover', 'publish', 'audiobook'],
     features: [
       'Up to 10 books',
       '500,000 AI tokens a month',
@@ -52,6 +57,8 @@ export const PLANS: Record<PlanId, Plan> = {
       'Print and ebook formatting',
       'AI cover designer',
       'Publishing kit and submission',
+      '3 AI cover runs per book',
+      'AI audiobook narration',
     ],
   },
   agency: {
@@ -60,9 +67,10 @@ export const PLANS: Record<PlanId, Plan> = {
     priceMonthly: 79,
     bookLimit: null,
     monthlyTokens: 2_000_000,
+    coverRunsPerBook: 10,
     integrations: true,
-    tools: ['bible', 'proofread', 'print', 'cover', 'publish', 'automations'],
-    features: ['Unlimited books', '2,000,000 AI tokens a month', 'Everything in Pro', 'Zapier and webhook automations'],
+    tools: ['bible', 'proofread', 'print', 'cover', 'publish', 'audiobook', 'automations'],
+    features: ['Unlimited books', '2,000,000 AI tokens a month', 'Everything in Pro', '10 AI cover runs per book', 'Zapier and webhook automations'],
   },
 };
 
@@ -88,6 +96,7 @@ export const FEATURE_LABELS: Record<string, string> = {
   publishing_kit: 'Publishing kit',
   cover_image: 'Cover images',
   cover_text: 'Cover copy',
+  audiobook: 'Audiobook narration',
 };
 
 export function planAllows(planId: string | null | undefined, f: Feature) {

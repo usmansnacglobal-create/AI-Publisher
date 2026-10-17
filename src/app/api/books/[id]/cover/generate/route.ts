@@ -6,6 +6,7 @@ import { complete, FAST_MODEL } from '@/lib/ai/claude';
 import { generateCoverArt, generateCoverArtFromImages } from '@/lib/ai/openai';
 import { COVER_STYLES, DEFAULT_BRIEF, type CoverBrief } from '@/lib/cover';
 import { logActivity } from '@/lib/notify';
+import { getPlan } from '@/lib/plans';
 
 export const maxDuration = 300;
 
@@ -23,6 +24,16 @@ export const POST = handle(async (req: Request, { params }: { params: { id: stri
     .parse(await req.json().catch(() => ({})));
   const { data: cover } = await supabase.from('covers').select('*').eq('book_id', book.id).maybeSingle();
   const brief: CoverBrief = { ...DEFAULT_BRIEF, ...(cover?.brief ?? {}) };
+  const { data: profile } = await supabase.from('profiles').select('plan').eq('id', user.id).single();
+  const limit = getPlan(profile?.plan).coverRunsPerBook;
+  const used = cover?.generations ?? 0;
+  if (used >= limit) {
+    throw new HttpError(
+      403,
+      `You’ve used all ${limit} AI cover runs for this book on your plan. Pick from your concepts, use a template, upload your own artwork, or upgrade for more runs.`,
+      'COVER_LIMIT',
+    );
+  }
   if (brief.referencePaths.length && !brief.rightsConfirmed) {
     throw new HttpError(400, 'Confirm you own or have the rights to use your reference images.');
   }
@@ -69,20 +80,22 @@ export const POST = handle(async (req: Request, { params }: { params: { id: stri
   }
   if (!images.length) throw new HttpError(502, 'No images came back. Try again.');
 
-  const fresh: { path: string; prompt: string; created_at: string }[] = [];
+  const fresh: { path: string; prompt: string; created_at: string; kind: string }[] = [];
   for (const img of images) {
     const path = `${user.id}/${book.id}/concept-${randomUUID()}.png`;
     const { error } = await supabase.storage.from('covers').upload(path, img, { contentType: 'image/png' });
     if (error) throw error;
-    fresh.push({ path, prompt: direction, created_at: new Date().toISOString() });
+    fresh.push({ path, prompt: direction, created_at: new Date().toISOString(), kind: 'ai' });
   }
-  // Keep the 12 most recent concepts; delete older files.
+  // Keep the 24 most recent concepts; delete older files (never ones a saved version uses).
   const all = [...fresh, ...((cover?.concepts ?? []) as typeof fresh)];
-  const keep = all.slice(0, 12);
-  const drop = all.slice(12).map((c) => c.path).filter((p) => p !== cover?.selected_path);
+  const keep = all.slice(0, 24);
+  const { data: vers } = await supabase.from('cover_versions').select('selected_path').eq('book_id', book.id);
+  const inUse = new Set([cover?.selected_path, ...(vers ?? []).map((v) => v.selected_path)]);
+  const drop = all.slice(24).map((c) => c.path).filter((p) => !inUse.has(p));
   if (drop.length) await supabase.storage.from('covers').remove(drop);
   await supabase.from('covers').upsert(
-    { book_id: book.id, user_id: user.id, concepts: keep, brief, selected_path: cover?.selected_path ?? fresh[0].path },
+    { book_id: book.id, user_id: user.id, concepts: keep, brief, selected_path: cover?.selected_path ?? fresh[0].path, generations: used + 1 },
     { onConflict: 'book_id' },
   );
   await logActivity(user.id, 'cover.generated', { bookId: book.id, count: fresh.length });

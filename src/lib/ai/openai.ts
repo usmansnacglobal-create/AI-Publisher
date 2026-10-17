@@ -84,3 +84,48 @@ export async function generateCoverArtFromImages(o: {
   });
   return (res.data ?? []).filter((d) => d.b64_json).map((d) => Buffer.from(d.b64_json!, 'base64'));
 }
+
+export const TTS_MODEL = process.env.OPENAI_TTS_MODEL || 'gpt-4o-mini-tts';
+/** Each narrated character counts as this many tokens against the monthly allowance (about 4 characters per token). */
+const AUDIO_TOKEN_WEIGHT = Number(process.env.AUDIO_TOKEN_WEIGHT ?? 2);
+
+export function audioTokenCost(chars: number) {
+  return Math.ceil((chars / 4) * AUDIO_TOKEN_WEIGHT);
+}
+
+/**
+ * Narrates text as MP3 with one of OpenAI's voices. Long text is narrated in
+ * pieces (three at a time) and joined in order.
+ */
+export async function narrate(o: { userId: string; bookId: string; chunks: string[]; voice: string; instructions: string; feature?: string }): Promise<Buffer> {
+  const chars = o.chunks.reduce((s, c) => s + c.length, 0);
+  await assertQuota(o.userId, audioTokenCost(chars));
+  const parts: Buffer[] = new Array(o.chunks.length);
+  let next = 0;
+  const worker = async () => {
+    while (next < o.chunks.length) {
+      const i = next++;
+      const res = await openai().audio.speech.create({
+        model: TTS_MODEL,
+        voice: o.voice,
+        input: o.chunks[i],
+        instructions: TTS_MODEL.startsWith('tts-1') ? undefined : o.instructions,
+        response_format: 'mp3',
+      });
+      parts[i] = Buffer.from(await res.arrayBuffer());
+    }
+  };
+  await Promise.all([worker(), worker(), worker()]);
+  await recordUsage({
+    userId: o.userId,
+    bookId: o.bookId,
+    feature: o.feature ?? 'audiobook',
+    provider: 'openai',
+    model: TTS_MODEL,
+    inputTokens: Math.ceil(chars / 4),
+    outputTokens: 0,
+    weight: AUDIO_TOKEN_WEIGHT,
+  });
+  // MP3 frames can simply be joined.
+  return Buffer.concat(parts);
+}

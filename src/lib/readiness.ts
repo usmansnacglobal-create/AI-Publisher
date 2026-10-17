@@ -35,5 +35,14 @@ export async function readiness(supabase: ReturnType<typeof createClient>, book:
       { id: 'wrap', label: 'Full print cover (with spine) exported', ok: !!cover?.wrap_path, fix: 'Export the full paperback cover.', link: `${base}/cover` },
     );
   }
+  if (formats.includes('audiobook')) {
+    const [{ data: ab }, { data: chs }] = await Promise.all([
+      supabase.from('audiobooks').select('tracks, voice').eq('book_id', book.id).maybeSingle(),
+      supabase.from('chapters').select('id, updated_at, word_count').eq('book_id', book.id),
+    ]);
+    const tracks = (ab?.tracks ?? {}) as Record<string, { generated_at: string; voice: string }>;
+    const missing = (chs ?? []).filter((c) => c.word_count > 0 && (!tracks[c.id] || new Date(c.updated_at) > new Date(tracks[c.id].generated_at) || tracks[c.id].voice !== ab?.voice)).length;
+    checks.push({ id: 'audio', label: 'Every chapter narrated', ok: !!ab && missing === 0, fix: `${missing || 'All'} chapter${missing === 1 ? '' : 's'} still to narrate.`, link: `${base}/audiobook` });
+  }
   return checks;
 }

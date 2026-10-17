@@ -120,10 +120,12 @@ export async function recordUsage(args: {
   model: string;
   inputTokens: number;
   outputTokens: number;
+  /** Multiplier for the allowance. Defaults to the image weight for OpenAI and 1 for Claude. */
+  weight?: number;
 }) {
   const admin = createAdminClient();
   const raw = args.inputTokens + args.outputTokens;
-  const total = args.provider === 'openai' ? Math.round(raw * IMAGE_TOKEN_WEIGHT) : raw;
+  const total = Math.round(raw * (args.weight ?? (args.provider === 'openai' ? IMAGE_TOKEN_WEIGHT : 1)));
   await admin.from('token_usage').insert({
     user_id: args.userId,
     book_id: args.bookId ?? null,

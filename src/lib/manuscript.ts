@@ -61,3 +61,39 @@ function chunkByWords(text: string, size: number) {
   if (buf.length) out.push({ title: `Part ${out.length + 1}`, content: buf.join('\n\n') });
   return out;
 }
+
+/**
+ * PDF text comes out one printed line at a time. Rebuild paragraphs: a line
+ * that ends a sentence and is noticeably shorter than a full line ends a paragraph.
+ */
+export function pdfLinesToText(pages: string[]): string {
+  const lines = pages
+    .flatMap((p) => p.split('\n'))
+    .map((l) => l.replace(/\s+/g, ' ').trim())
+    .filter((l) => l && !/^\d{1,4}$/.test(l)); // drop bare page numbers
+  if (!lines.length) return '';
+  const lengths = lines.map((l) => l.length).sort((a, b) => a - b);
+  const full = lengths[Math.floor(lengths.length * 0.75)] || 60;
+  const out: string[] = [];
+  let para = '';
+  for (let i = 0; i < lines.length; i++) {
+    const l = lines[i];
+    const heading = /^(chapter|part|prologue|epilogue)\b/i.test(l) && l.length < 80;
+    if (heading) {
+      if (para) out.push(para);
+      out.push(l);
+      para = '';
+      continue;
+    }
+    // A line ending in a hyphen continues the word on the next line; keep the hyphen (proofreading catches stray ones).
+    para = para ? (para.endsWith('-') && /^[a-z]/.test(l) ? para + l : `${para} ${l}`) : l;
+    const next = lines[i + 1];
+    const endsSentence = /[.!?"”’)]$/.test(l);
+    if (!next || (endsSentence && l.length < full * 0.85)) {
+      out.push(para);
+      para = '';
+    }
+  }
+  if (para) out.push(para);
+  return out.join('\n\n');
+}

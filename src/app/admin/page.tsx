@@ -21,9 +21,14 @@ export default async function AdminPage() {
   const paths = (covers ?? []).flatMap((c) => [c.front_path, c.wrap_path]).filter(Boolean) as string[];
   const signed = paths.length ? (await admin.storage.from('covers').createSignedUrls(paths, 3600)).data ?? [] : [];
   const url = (p?: string | null) => (p ? signed.find((s) => s.path === p)?.signedUrl : undefined);
+  const { data: audio } = await admin.from('audiobooks').select('book_id, tracks').in('book_id', (subs ?? []).map((s) => s.book_id));
+  const audioPaths = (audio ?? []).flatMap((a) => Object.values((a.tracks ?? {}) as Record<string, { path: string }>).map((t) => t.path));
+  const audioSigned = audioPaths.length ? (await admin.storage.from('audio').createSignedUrls(audioPaths, 3600)).data ?? [] : [];
   const rows = (subs ?? []).map((s) => {
     const c = covers?.find((x) => x.book_id === s.book_id);
-    return { ...s, profiles: people?.find((p) => p.id === s.user_id) ?? null, frontUrl: url(c?.front_path), wrapUrl: url(c?.wrap_path) };
+    const a = audio?.find((x) => x.book_id === s.book_id);
+    const tracks = Object.values((a?.tracks ?? {}) as Record<string, { path: string }>).map((t) => audioSigned.find((x) => x.path === t.path)?.signedUrl).filter(Boolean) as string[];
+    return { ...s, profiles: people?.find((p) => p.id === s.user_id) ?? null, frontUrl: url(c?.front_path), wrapUrl: url(c?.wrap_path), audioUrls: tracks };
   });
   return (
     <main className="mx-auto max-w-[1100px] px-4 py-8">

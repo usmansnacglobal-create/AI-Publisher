@@ -9,7 +9,7 @@ export const maxDuration = 120;
 export const POST = handle(async (req: Request, { params }: { params: { id: string } }) => {
   const { supabase, user } = await requireUser();
   const book = await requireBook(supabase, params.id);
-  const { guidance = '' } = await req.json().catch(() => ({}));
+  const { guidance = '', chapter_length, chapter_words } = await req.json().catch(() => ({}));
 
   const { data: existing } = await supabase.from('chapters').select('*').eq('book_id', book.id).order('position');
   const written = (existing ?? []).filter((c) => c.word_count > 0);
@@ -45,6 +45,11 @@ Plan exactly ${remaining} ${written.length ? 'further ' : ''}chapters with a str
       position: start + i + 1,
       title: c.title,
       synopsis: c.synopsis,
+      settings: {
+        mode: book.writing_mode ?? 'full',
+        ...(['short', 'standard', 'long', 'custom'].includes(chapter_length) ? { length: chapter_length } : {}),
+        ...(typeof chapter_words === 'number' ? { words: chapter_words } : {}),
+      },
     })),
   );
   if (error) throw error;

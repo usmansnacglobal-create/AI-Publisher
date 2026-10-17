@@ -28,7 +28,7 @@ You need accounts with GitHub, Vercel, Supabase, Anthropic, OpenAI and (before c
 
 ### 1. Supabase
 1. Create a project at [supabase.com](https://supabase.com). Choose a region near your authors (for example London).
-2. Open **SQL Editor → New query**, paste everything from `supabase/migrations/0001_init.sql`, and click **Run**.
+2. Open **SQL Editor → New query**, paste everything from `supabase/migrations/0001_init.sql`, and click **Run**. Then do the same with `0002_old_tool_features.sql` (safe to run more than once).
 3. **Authentication → URL Configuration**: set **Site URL** to your site's address (for example `https://aipublisher.com`) and add `https://aipublisher.com/**` under **Redirect URLs**.
 4. **Project Settings → API**: copy the **Project URL**, the **anon public** key and the **service_role** key for step 3.
 
@@ -46,8 +46,8 @@ You need accounts with GitHub, Vercel, Supabase, Anthropic, OpenAI and (before c
 |---|---|
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` | Supabase step 4 |
 | `ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com) → API keys |
-| `OPENAI_API_KEY` | [platform.openai.com](https://platform.openai.com) → API keys |
-| `ANTHROPIC_MODEL`, `ANTHROPIC_FAST_MODEL`, `OPENAI_IMAGE_MODEL` | Optional. Defaults are `claude-sonnet-5-5`, `claude-haiku-5-5` and `gpt-image-2`. Change these to switch models without touching code |
+| `OPENAI_API_KEY` | [platform.openai.com](https://platform.openai.com) → API keys. Used for cover art and audiobook narration |
+| `ANTHROPIC_MODEL`, `ANTHROPIC_FAST_MODEL`, `OPENAI_IMAGE_MODEL` | Optional. Defaults are `claude-sonnet-5-5`, `claude-haiku-5-5` and `gpt-image-2` (plus `OPENAI_TTS_MODEL`, default `gpt-4o-mini-tts`). Change these to switch models without touching code |
 | `PAYPAL_ENV`, `NEXT_PUBLIC_PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `NEXT_PUBLIC_PAYPAL_PLAN_PRO`, `NEXT_PUBLIC_PAYPAL_PLAN_AGENCY`, `PAYPAL_WEBHOOK_ID` | PayPal steps 1 to 3 |
 | `NEXT_PUBLIC_SITE_URL` | Your site's address |
 | `CRON_SECRET` | Any long random text (for the Sunday progress email) |

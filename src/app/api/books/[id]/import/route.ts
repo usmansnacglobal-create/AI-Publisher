@@ -1,6 +1,6 @@
 import mammoth from 'mammoth';
 import { handle, json, requireUser, requireBook, HttpError } from '@/lib/api';
-import { splitIntoChapters } from '@/lib/manuscript';
+import { pdfLinesToText, splitIntoChapters } from '@/lib/manuscript';
 import { countWords } from '@/lib/text';
 import { logActivity } from '@/lib/notify';
 
@@ -22,10 +22,16 @@ export const POST = handle(async (req: Request, { params }: { params: { id: stri
   let text: string;
   if (name.endsWith('.docx')) {
     text = (await mammoth.extractRawText({ buffer: buf })).value;
+  } else if (name.endsWith('.pdf')) {
+    const { extractText, getDocumentProxy } = await import('unpdf');
+    const pdf = await getDocumentProxy(new Uint8Array(buf));
+    const { text: pages } = await extractText(pdf, { mergePages: false });
+    text = pdfLinesToText(pages as string[]);
+    if (!text.trim()) throw new HttpError(400, 'That PDF has no selectable text (it may be scanned images). Export it from Word as .docx instead.');
   } else if (name.endsWith('.txt') || name.endsWith('.md')) {
     text = buf.toString('utf8');
   } else {
-    throw new HttpError(400, 'Import a .docx, .txt or .md file. For Pages or Google Docs, download as Word first.');
+    throw new HttpError(400, 'Import a .docx, .pdf, .txt or .md file. For Pages or Google Docs, download as Word first.');
   }
 
   const parts = splitIntoChapters(text);

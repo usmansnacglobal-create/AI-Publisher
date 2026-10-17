@@ -13,6 +13,7 @@ export function BookTabs({ id }: { id: string }) {
     ['/proofread', 'Proofread'],
     ['/format', 'Layout'],
     ['/cover', 'Cover'],
+    ['/audiobook', 'Audiobook'],
     ['/publish', 'Publish'],
   ];
   return (

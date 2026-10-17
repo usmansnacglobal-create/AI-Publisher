@@ -8,6 +8,7 @@ const LABELS: Record<string, (d: Record<string, unknown>) => string> = {
   'chapter.generated': (d) => `AI wrote chapter ${d.chapter}`,
   'cover.generated': (d) => `Generated ${d.count} cover concept${d.count === 1 ? '' : 's'}`,
   'cover.finalised': () => 'Finished a cover',
+  'audiobook.chapter': (d) => `Narrated chapter ${d.chapter} for the audiobook`,
   'submission.status': (d) => `Publishing status changed to ${String(d.status).replace('_', ' ')}`,
   'billing.subscribed': (d) => `Moved to the ${String(d.plan)} plan`,
   'billing.cancelled': () => 'Cancelled plan renewal',

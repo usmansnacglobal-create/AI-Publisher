@@ -1,17 +1,17 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowDown, ArrowUp, Pencil, Trash2 } from 'lucide-react';
 import type { Book, Chapter } from '@/lib/api';
 import type { BookProgress } from '@/lib/text';
-import { formatNumber } from '@/lib/text';
-import { api, errorText } from '@/lib/client';
+import { countWords, formatNumber } from '@/lib/text';
+import { api, ApiError, errorText, stream } from '@/lib/client';
 import { DIALECTS, GENRES, PACING, POVS } from '@/lib/genres';
 import { Button, ButtonLink, Empty, Field, Modal, Progress } from '@/components/ui';
 import { useToast } from '@/components/toast';
 
-export function Overview({ book, chapters, progress }: { book: Book; chapters: Chapter[]; progress: BookProgress }) {
+export function Overview({ book, chapters, progress, autowrite }: { book: Book; chapters: Chapter[]; progress: BookProgress; autowrite?: boolean }) {
   const router = useRouter();
   const toast = useToast();
   const [f, setF] = useState(book);
@@ -20,6 +20,7 @@ export function Overview({ book, chapters, progress }: { book: Book; chapters: C
   const [importOpen, setImportOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [planOpen, setPlanOpen] = useState(false);
+  const [writeAllOpen, setWriteAllOpen] = useState(!!autowrite && chapters.some((c) => !c.word_count));
   const set = <K extends keyof Book>(k: K, v: Book[K]) => setF((x) => ({ ...x, [k]: v }));
 
   async function run(label: string, fn: () => Promise<unknown>, done?: string) {
@@ -70,6 +71,11 @@ export function Overview({ book, chapters, progress }: { book: Book; chapters: C
             <Button size="sm" variant="secondary" onClick={() => run('add', () => api(`/api/books/${book.id}/chapters`, { body: {} }))} loading={busy === 'add'}>
               Add chapter
             </Button>
+            {empty > 0 && (
+              <Button size="sm" onClick={() => setWriteAllOpen(true)}>
+                Write {empty === chapters.length ? 'all chapters' : `the ${empty} empty chapters`} with AI
+              </Button>
+            )}
           </div>
         </div>
 
@@ -191,6 +197,7 @@ export function Overview({ book, chapters, progress }: { book: Book; chapters: C
       <ImportModal open={importOpen} bookId={book.id} hasChapters={chapters.length > 0} onClose={() => setImportOpen(false)} />
       <PlanModal open={planOpen} bookId={book.id} written={chapters.length - empty} target={book.target_chapters} onClose={() => setPlanOpen(false)} />
       <DeleteModal open={deleteOpen} book={book} onClose={() => setDeleteOpen(false)} />
+      <WriteAllModal open={writeAllOpen} chapters={chapters.filter((c) => !c.word_count)} onClose={() => { setWriteAllOpen(false); history.replaceState(null, '', location.pathname); router.refresh(); }} />
     </div>
   );
 }
@@ -268,8 +275,8 @@ function ImportModal({ open, bookId, hasChapters, onClose }: { open: boolean; bo
   return (
     <Modal open={open} onClose={onClose} title="Import a manuscript">
       <div className="space-y-4 text-[14px]">
-        <p className="text-ink-muted">Upload a Word (.docx), text (.txt) or Markdown (.md) file up to 4 MB. Chapters are split at headings like “Chapter 1” or “Prologue”.</p>
-        <input type="file" accept=".docx,.txt,.md" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+        <p className="text-ink-muted">Upload a Word (.docx), PDF, text (.txt) or Markdown (.md) file up to 4 MB. Chapters are split at headings like “Chapter 1” or “Prologue”.</p>
+        <input type="file" accept=".docx,.pdf,.txt,.md" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
         {hasChapters && (
           <label className="flex items-center gap-2">
             <input type="checkbox" className="accent-cloth" checked={replace} onChange={(e) => setReplace(e.target.checked)} />
@@ -341,6 +348,67 @@ function DeleteModal({ open, book, onClose }: { open: boolean; book: Book; onClo
         </Field>
         <Button variant="danger" onClick={go} loading={busy} disabled={typed.trim() !== book.title.trim()}>Delete book permanently</Button>
       </div>
+    </Modal>
+  );
+}
+
+function WriteAllModal({ open, chapters, onClose }: { open: boolean; chapters: Chapter[]; onClose: () => void }) {
+  const [state, setState] = useState<{ i: number; done: number; words: number; failed: string[]; stopped: boolean; finished: boolean } | null>(null);
+  const stopRef = useRef(false);
+  const startedRef = useRef(false);
+
+  async function go() {
+    if (startedRef.current) return;
+    startedRef.current = true;
+    stopRef.current = false;
+    const failed: string[] = [];
+    let words = 0;
+    for (let i = 0; i < chapters.length; i++) {
+      if (stopRef.current) break;
+      setState({ i, done: i, words, failed, stopped: false, finished: false });
+      try {
+        await stream(`/api/chapters/${chapters[i].id}/generate`, { mode: 'write' }, (t) => setState((s) => (s ? { ...s, words: words + countWords(t) } : s)));
+        const r = await api<{ chapter: { word_count: number } }>(`/api/chapters/${chapters[i].id}`);
+        words += r.chapter.word_count;
+      } catch (e) {
+        failed.push(`${chapters[i].title}: ${errorText(e)}`);
+        if (e instanceof ApiError && ['TOKENS_EXHAUSTED', 'TOKENS_LOW', 'AI_NOT_CONFIGURED'].includes(e.code ?? '')) break;
+      }
+    }
+    setState((s) => ({ i: s?.i ?? 0, done: chapters.length, words, failed, stopped: stopRef.current, finished: true }));
+    startedRef.current = false;
+  }
+
+  useEffect(() => {
+    if (open && !state && chapters.length) go();
+    // start once when opened
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  const running = state && !state.finished;
+  return (
+    <Modal open={open} onClose={() => { if (!running) { setState(null); onClose(); } }} title="Writing your book">
+      {!state ? (
+        <p className="text-[14px] text-ink-muted">Starting…</p>
+      ) : (
+        <div className="space-y-3 text-[14px]">
+          <p>
+            {state.finished
+              ? state.stopped
+                ? `Stopped. ${formatNumber(state.words)} words written so far.`
+                : `Done. ${formatNumber(state.words)} words written.`
+              : `Writing chapter ${state.i + 1} of ${chapters.length}: ${chapters[state.i]?.title}`}
+          </p>
+          <Progress value={(state.finished ? chapters.length : state.done) / Math.max(1, chapters.length) * 100} label="Chapters written" />
+          {!state.finished && <p className="text-ink-muted">{formatNumber(state.words)} words so far. Keep this page open; each chapter takes a minute or two.</p>}
+          {state.failed.length > 0 && <ul className="list-disc pl-5 text-danger">{state.failed.map((f) => <li key={f}>{f}</li>)}</ul>}
+          {running ? (
+            <Button variant="secondary" onClick={() => { stopRef.current = true; }}>Stop after this chapter</Button>
+          ) : (
+            <Button onClick={() => { setState(null); onClose(); }}>Done</Button>
+          )}
+        </div>
+      )}
     </Modal>
   );
 }

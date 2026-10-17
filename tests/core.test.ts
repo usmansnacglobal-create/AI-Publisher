@@ -105,3 +105,23 @@ describe('rich formatting in exports', () => {
     expect(b[3].type === 'para' && b[3].runs.find((r) => r.underline)?.text).toBe('this');
   });
 });
+
+describe('PDF import', () => {
+  it('rebuilds paragraphs from printed lines', async () => {
+    const { pdfLinesToText } = await import('@/lib/manuscript');
+    const page = [
+      'Chapter 1',
+      'The heat settled over the town like a heavy blanket, the kind that made',
+      'the asphalt shimmer and the dust rise.',
+      'He laced his boots slowly, the way his father had taught him, double-',
+      'knotting each one.',
+      '12',
+    ].join('\n');
+    const t = pdfLinesToText([page]);
+    expect(t.split('\n\n')).toEqual([
+      'Chapter 1',
+      'The heat settled over the town like a heavy blanket, the kind that made the asphalt shimmer and the dust rise.',
+      'He laced his boots slowly, the way his father had taught him, double-knotting each one.',
+    ]);
+  });
+});

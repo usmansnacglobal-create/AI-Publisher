@@ -19,6 +19,7 @@ const csp = [
   "font-src 'self' data: https://fonts.gstatic.com",
   `img-src 'self' data: blob: https://*.supabase.co ${supabaseOrigin} https://*.paypal.com https://*.paypalobjects.com`,
   `connect-src 'self' https://*.supabase.co wss://*.supabase.co ${supabaseOrigin} https://*.paypal.com https://fonts.googleapis.com https://fonts.gstatic.com`,
+  `media-src 'self' blob: https://*.supabase.co ${supabaseOrigin}`,
   "frame-src blob: https://www.paypal.com https://*.paypal.com",
   "object-src 'none'",
   "base-uri 'self'",
@@ -37,7 +38,7 @@ const securityHeaders = [
 const nextConfig = {
   reactStrictMode: true,
   experimental: {
-    serverComponentsExternalPackages: ['pdfkit', 'mammoth'],
+    serverComponentsExternalPackages: ['pdfkit', 'mammoth', 'unpdf'],
     // The print PDF embeds the book font, so ship the font files with that route.
     outputFileTracingIncludes: {
       '/api/books/[id]/export': ['./src/assets/fonts/**'],
