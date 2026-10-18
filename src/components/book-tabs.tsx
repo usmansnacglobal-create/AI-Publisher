@@ -15,6 +15,7 @@ export function BookTabs({ id }: { id: string }) {
     ['/cover', 'Cover'],
     ['/audiobook', 'Audiobook'],
     ['/publish', 'Publish'],
+    ['/print', 'Print copies'],
   ];
   return (
     <nav className="-mx-4 overflow-x-auto border-b border-line px-4 sm:mx-0 sm:px-0" aria-label="Book sections">

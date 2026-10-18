@@ -10,7 +10,7 @@ export default async function BookLayout({ children, params }: { children: React
   return (
     <div className="mx-auto max-w-[1240px]">
       <div className="mb-5">
-        <Link href="/dashboard/books" className="text-[13px] text-ink-muted hover:text-ink">My books</Link>
+        <Link href="/dashboard/books" className="text-[13px] text-ink-muted hover:text-ink">My Library</Link>
         <p className="mt-0.5 truncate font-serif text-[1.5rem] leading-tight">{book.title}</p>
       </div>
       <BookTabs id={book.id} />

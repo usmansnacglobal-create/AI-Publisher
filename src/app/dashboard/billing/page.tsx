@@ -4,7 +4,7 @@ import { PLANS } from '@/lib/plans';
 import { PageHeader } from '@/components/ui';
 import { Plans } from './plans';
 
-export const metadata = { title: 'Plan and billing' };
+export const metadata = { title: 'Billing & Subscriptions' };
 
 export default async function BillingPage() {
   const { supabase, user, profile } = await getViewer();
@@ -13,7 +13,7 @@ export default async function BillingPage() {
   const { count: books } = await supabase.from('books').select('id', { count: 'exact', head: true }).eq('user_id', user.id);
   return (
     <div className="mx-auto max-w-[1000px]">
-      <PageHeader title="Plan and billing">Payments are handled securely by PayPal. You can pay with a PayPal account or a card.</PageHeader>
+      <PageHeader title="Billing & Subscriptions">Payments are handled securely by PayPal. You can pay with a PayPal account or a card.</PageHeader>
       <Plans
         userId={user.id}
         current={profile.plan}

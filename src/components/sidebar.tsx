@@ -1,32 +1,135 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { clsx } from 'clsx';
-import { Bell, BookOpen, CreditCard, Gauge, History, Inbox, LayoutGrid, LifeBuoy, LogOut, Menu, Settings, Shield, Send, PenLine, X } from 'lucide-react';
+import {
+  BarChart3, Bell, BookOpen, ChevronDown, CreditCard, FilePlus2, Gauge, Globe2, History, Inbox, LayoutDashboard, LayoutGrid, LifeBuoy, LogOut, Menu,
+  Palette, PenLine, Printer, Send, Settings, Shield, Type, X, type LucideIcon,
+} from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { compact } from '@/lib/text';
 import { Progress } from './ui';
 import { ThemeToggle } from './theme-picker';
 
-const NAV = [
-  { href: '/dashboard', label: 'Home', icon: LayoutGrid, exact: true },
-  { href: '/dashboard/books', label: 'My books', icon: BookOpen },
-  { href: '/dashboard/writing', label: 'Writing', icon: PenLine },
-  { href: '/dashboard/publishing', label: 'Publishing', icon: Send },
-  { href: '/dashboard/usage', label: 'AI usage', icon: Gauge },
-  { href: '/dashboard/billing', label: 'Plan and billing', icon: CreditCard },
-  { href: '/dashboard/activity', label: 'Activity', icon: History },
+type Item = { href: string; label: string; icon: LucideIcon };
+type Group = { title: string; items: Item[] };
+
+// Grouped the same way as the original AI Content Publisher, so authors find things where they expect.
+const TOP: Item[] = [
+  { href: '/dashboard', label: 'Home', icon: LayoutGrid },
+  { href: '/dashboard/overview', label: 'Dashboard Overview', icon: LayoutDashboard },
+];
+const GROUPS: Group[] = [
+  {
+    title: 'Content Creation Hub',
+    items: [
+      { href: '/dashboard/books', label: 'My Library', icon: BookOpen },
+      { href: '/dashboard/books/new', label: 'Writing Launchpad', icon: FilePlus2 },
+      { href: '/dashboard/writing', label: 'Document Editor', icon: PenLine },
+    ],
+  },
+  {
+    title: 'Styling & Design Studio',
+    items: [
+      { href: '/dashboard/layout', label: 'Layout Typographer', icon: Type },
+      { href: '/dashboard/covers', label: 'Media & Cover Designer', icon: Palette },
+    ],
+  },
+  {
+    title: 'Publishing & Outbound',
+    items: [
+      { href: '/dashboard/publishing', label: 'Publishing', icon: Send },
+      { href: '/dashboard/distribution', label: 'Distribution Channels', icon: Globe2 },
+      { href: '/dashboard/analytics', label: 'Performance Analytics', icon: BarChart3 },
+      { href: '/dashboard/print-orders', label: 'Print Orders', icon: Printer },
+    ],
+  },
+  {
+    title: 'Platform Management',
+    items: [
+      { href: '/dashboard/usage', label: 'Credits & AI Tokens', icon: Gauge },
+      { href: '/dashboard/billing', label: 'Billing & Subscriptions', icon: CreditCard },
+      { href: '/dashboard/activity', label: 'System Activity Logs', icon: History },
+      { href: '/dashboard/settings', label: 'Settings', icon: Settings },
+    ],
+  },
+];
+const BOTTOM: Item[] = [
   { href: '/dashboard/notifications', label: 'Notifications', icon: Bell },
-  { href: '/dashboard/settings', label: 'Settings', icon: Settings },
   { href: '/dashboard/help', label: 'Help', icon: LifeBuoy },
 ];
+const ADMIN: Group = {
+  title: 'Admin',
+  items: [
+    { href: '/admin', label: 'Publishing queue', icon: Shield },
+    { href: '/admin/support', label: 'Support inbox', icon: Inbox },
+    { href: '/admin/print', label: 'Print orders (admin)', icon: Printer },
+    { href: '/admin/sales', label: 'Sales data', icon: BarChart3 },
+  ],
+};
+
+/** Which menu item a page belongs to. Each book's tabs light up the matching studio item. */
+export function activeHref(path: string): string {
+  const tab = /^\/dashboard\/books\/(?!new\b)[^/]+(?:\/([^/]+))?/.exec(path);
+  if (tab) {
+    const map: Record<string, string> = { write: '/dashboard/writing', format: '/dashboard/layout', cover: '/dashboard/covers', publish: '/dashboard/publishing', print: '/dashboard/print-orders' };
+    return map[tab[1] ?? ''] ?? '/dashboard/books';
+  }
+  const all = [...TOP, ...GROUPS.flatMap((g) => g.items), ...BOTTOM, ...ADMIN.items].map((i) => i.href);
+  const exact = all.find((h) => h === path);
+  if (exact) return exact;
+  return all.filter((h) => h !== '/dashboard' && h !== '/admin' && path.startsWith(h + '/')).sort((a, b) => b.length - a.length)[0] ?? '';
+}
+
+const GROUP_KEY = 'ap-nav-closed';
 
 export function Sidebar({ name, isAdmin, unread, usage }: { name: string; isAdmin: boolean; unread: number; usage: { used: number; limit: number; plan: string; resets: string } }) {
   const path = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [closed, setClosed] = useState<string[]>([]);
   const pct = (usage.used / usage.limit) * 100;
+  const current = activeHref(path);
+
+  useEffect(() => {
+    try {
+      setClosed(JSON.parse(localStorage.getItem(GROUP_KEY) ?? '[]'));
+    } catch {}
+  }, []);
+  function toggle(title: string) {
+    setClosed((c) => {
+      const next = c.includes(title) ? c.filter((t) => t !== title) : [...c, title];
+      try {
+        localStorage.setItem(GROUP_KEY, JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  }
+
+  const link = (item: Item) => {
+    const active = item.href === current;
+    const Icon = item.icon;
+    return (
+      <li key={item.href}>
+        <Link
+          href={item.href}
+          onClick={() => setOpen(false)}
+          aria-current={active ? 'page' : undefined}
+          className={clsx(
+            'flex items-center gap-3 rounded px-3 py-1.5 text-[14px]',
+            active ? 'bg-sheet font-medium text-ink shadow-[inset_2px_0_0_rgb(var(--c-cloth))]' : 'text-ink-soft hover:bg-sheet/60',
+          )}
+        >
+          <Icon className="h-4 w-4 shrink-0" aria-hidden />
+          <span className="flex-1">{item.label}</span>
+          {item.href === '/dashboard/notifications' && unread > 0 && (
+            <span className="rounded-full bg-cloth px-1.5 text-[11px] font-semibold text-white">{unread > 99 ? '99+' : unread}</span>
+          )}
+        </Link>
+      </li>
+    );
+  };
 
   async function signOut() {
     await createClient().auth.signOut();
@@ -36,34 +139,29 @@ export function Sidebar({ name, isAdmin, unread, usage }: { name: string; isAdmi
 
   const nav = (
     <nav className="flex h-full flex-col">
-      <Link href="/dashboard" className="px-5 pb-6 pt-6 font-serif text-[1.3rem]" onClick={() => setOpen(false)}>
+      <Link href="/dashboard" className="px-5 pb-4 pt-6 font-serif text-[1.3rem]" onClick={() => setOpen(false)}>
         AI Publisher
       </Link>
-      <ul className="flex-1 space-y-0.5 px-3">
-        {[...NAV, ...(isAdmin ? [{ href: '/admin', label: 'Publishing queue', icon: Shield, exact: true }, { href: '/admin/support', label: 'Support inbox', icon: Inbox }] : [])].map((item) => {
-          const active = 'exact' in item && item.exact ? path === item.href : path.startsWith(item.href);
-          const Icon = item.icon;
+      <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-2">
+        <ul className="space-y-0.5">{TOP.map(link)}</ul>
+        {[...GROUPS, ...(isAdmin ? [ADMIN] : [])].map((g) => {
+          const isClosed = closed.includes(g.title) && !g.items.some((i) => i.href === current);
           return (
-            <li key={item.href}>
-              <Link
-                href={item.href}
-                onClick={() => setOpen(false)}
-                aria-current={active ? 'page' : undefined}
-                className={clsx(
-                  'flex items-center gap-3 rounded px-3 py-2 text-[14px]',
-                  active ? 'bg-sheet font-medium text-ink shadow-[inset_2px_0_0_rgb(var(--c-cloth))]' : 'text-ink-soft hover:bg-sheet/60',
-                )}
+            <div key={g.title} className="mt-3">
+              <button
+                onClick={() => toggle(g.title)}
+                aria-expanded={!isClosed}
+                className="flex w-full items-center justify-between rounded px-3 py-1 text-[11.5px] font-semibold uppercase tracking-wide text-ink-muted hover:text-ink"
               >
-                <Icon className="h-4 w-4 shrink-0" aria-hidden />
-                <span className="flex-1">{item.label}</span>
-                {item.href === '/dashboard/notifications' && unread > 0 && (
-                  <span className="rounded-full bg-cloth px-1.5 text-[11px] font-semibold text-white">{unread > 99 ? '99+' : unread}</span>
-                )}
-              </Link>
-            </li>
+                {g.title}
+                <ChevronDown className={clsx('h-3.5 w-3.5 transition-transform', isClosed && '-rotate-90')} aria-hidden />
+              </button>
+              {!isClosed && <ul className="mt-0.5 space-y-0.5">{g.items.map(link)}</ul>}
+            </div>
           );
         })}
-      </ul>
+        <ul className="mt-3 space-y-0.5 border-t border-line pt-3">{BOTTOM.map(link)}</ul>
+      </div>
       <div className="m-3 rounded-md border border-line bg-sheet p-3">
         <div className="mb-2 flex items-baseline justify-between text-[13px]">
           <span className="font-medium">{usage.plan} plan</span>

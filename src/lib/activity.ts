@@ -17,6 +17,8 @@ const LABELS: Record<string, (d: Record<string, unknown>) => string> = {
   'security.2fa_off': () => 'Turned off two-factor sign-in',
   'security.password': () => 'Changed password',
   'support.message': (d) => `Sent a message to support (${d.topic})`,
+  'print.ordered': (d) => `Ordered ${d.quantity} printed ${Number(d.quantity) === 1 ? 'copy' : 'copies'} of “${d.title}”`,
+  'print.paid': (d) => `Paid $${Number(d.total).toFixed(2)} for a print order`,
 };
 
 export function describeActivity(action: string, details: Record<string, unknown>) {

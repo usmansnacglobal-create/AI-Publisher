@@ -4,7 +4,7 @@ import { FEATURE_LABELS } from '@/lib/plans';
 import { formatNumber } from '@/lib/text';
 import { ButtonLink, PageHeader, Progress } from '@/components/ui';
 
-export const metadata = { title: 'AI usage' };
+export const metadata = { title: 'Credits & AI Tokens' };
 
 function Bars({ rows, total }: { rows: [string, number][]; total: number }) {
   const max = Math.max(1, ...rows.map((r) => r[1]));
@@ -54,7 +54,7 @@ export default async function UsagePage() {
 
   return (
     <div className="mx-auto max-w-[960px]">
-      <PageHeader title="AI usage" actions={<ButtonLink href="/dashboard/billing" variant="secondary">Change plan</ButtonLink>}>
+      <PageHeader title="Credits & AI Tokens" actions={<ButtonLink href="/dashboard/billing" variant="secondary">Change plan</ButtonLink>}>
         Your {u.planName} plan includes {formatNumber(u.tokenLimit)} AI tokens each billing cycle. Writing and editing with Claude uses tokens as text is read and written; cover images from ChatGPT count at {process.env.IMAGE_TOKEN_WEIGHT ?? 3}× because images cost more to make.
       </PageHeader>
 

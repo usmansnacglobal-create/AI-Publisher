@@ -96,6 +96,13 @@ const CASES: [string, string][] = [
   ['can i make a hardcover version', 'hardcover'],
   ['what sizes can my book be', 'trim-sizes'],
   ['my book is too long for amazon', 'trim-sizes'],
+  ['how do i order printed copies of my book', 'print-orders'],
+  ['how much will it cost to print 20 copies', 'print-orders'],
+  ['where is my print order', 'print-orders'],
+  ['how many copies have i sold', 'analytics'],
+  ['which stores is my book in', 'distribution-channels'],
+  ['where is content creation hub', 'dashboard-tour'],
+  ['dashboard overview', 'dashboard-overview'],
 ];
 
 describe('help content', () => {

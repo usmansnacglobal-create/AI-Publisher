@@ -312,6 +312,15 @@ export function Format({ book, words, chapterCount, canPrint }: { book: Book; wo
               </li>
             ))}
           </ul>
+          {canPrint && (
+            <a href={`/dashboard/books/${book.id}/print`} className="mt-4 flex items-center justify-between gap-3 rounded-md border border-cloth/30 bg-cloth-light px-4 py-3 text-[14px] hover:border-cloth">
+              <span>
+                <span className="block font-medium text-cloth-dark">Order printed copies</span>
+                <span className="text-ink-soft">Once your layout is approved and your cover is exported, we can print and post copies to you.</span>
+              </span>
+              <span aria-hidden className="text-cloth">→</span>
+            </a>
+          )}
         </div>
       </section>
     </div>

@@ -4,12 +4,14 @@ import { useRouter } from 'next/navigation';
 import { api, errorText } from '@/lib/client';
 import { Badge, Button, Field, Modal } from '@/components/ui';
 import { useToast } from '@/components/toast';
+import { PLATFORMS, type PlatformId } from '@/lib/publishing';
 
 type Row = {
   id: string; book_id: string; status: string; platforms: string[]; formats: string[]; price: number; isbn: string | null; reviewer_notes: string; created_at: string;
   books: { id: string; title: string; genre: string; trim_size: string; page_count: number | null; paper?: string; layout?: { ink?: string } | null } | null;
   profiles: { email: string; full_name: string; pen_name: string } | null;
   frontUrl?: string; wrapUrl?: string; audioUrls?: string[];
+  store_links?: Record<string, string> | null;
   print_price?: number | null; hardcover_price?: number | null; language?: string; edition?: string; category?: string; publish_at?: string | null; narration_voice?: string | null;
 };
 const NEXT: Record<string, string[]> = {
@@ -28,6 +30,7 @@ export function Queue({ rows }: { rows: Row[] }) {
   const router = useRouter();
   const toast = useToast();
   const [filter, setFilter] = useState<'open' | 'all'>('open');
+  const [linksFor, setLinksFor] = useState<Row | null>(null);
   const [action, setAction] = useState<{ row: Row; status: string } | null>(null);
   const [notes, setNotes] = useState('');
   const [isbn, setIsbn] = useState('');
@@ -86,6 +89,7 @@ export function Queue({ rows }: { rows: Row[] }) {
               </div>
               <div className="flex flex-col gap-2">
                 <Button size="sm" variant="ghost" onClick={() => setNotesFor(r)}>Chapter notes</Button>
+                <Button size="sm" variant="ghost" onClick={() => setLinksFor(r)}>Store links{r.store_links && Object.keys(r.store_links).length ? ` (${Object.keys(r.store_links).length})` : ''}</Button>
                 {NEXT[r.status].map((s) => (
                   <Button key={s} size="sm" variant={['changes_requested', 'rejected', 'failed'].includes(s) ? 'secondary' : 'primary'} onClick={() => { setAction({ row: r, status: s }); setNotes(''); setIsbn(r.isbn ?? ''); }}>
                     {s === 'changes_requested' ? 'Request changes' : s === 'rejected' ? 'Reject' : s === 'failed' ? 'Mark failed' : s === 'publishing' && r.status === 'failed' ? 'Retry publishing' : `Mark ${LABEL[s].toLowerCase()}`}
@@ -97,6 +101,7 @@ export function Queue({ rows }: { rows: Row[] }) {
         </ul>
       )}
       <ChapterNotes row={notesFor} onClose={() => setNotesFor(null)} />
+      <StoreLinks row={linksFor} onClose={() => { setLinksFor(null); router.refresh(); }} />
       <Modal open={!!action} onClose={() => setAction(null)} title={action ? `${action.row.books?.title}: ${LABEL[action.status]}` : ''}>
         <div className="space-y-4">
           <Field label={action?.status === 'changes_requested' ? 'What needs changing?' : action?.status === 'rejected' ? 'Why it can’t be published' : action?.status === 'failed' ? 'What went wrong' : 'Note to the author (optional)'} htmlFor="n">
@@ -152,6 +157,43 @@ function ChapterNotes({ row, onClose }: { row: Row | null; onClose: () => void }
           ))}
         </ul>
       )}
+    </Modal>
+  );
+}
+
+function StoreLinks({ row, onClose }: { row: Row | null; onClose: () => void }) {
+  const toast = useToast();
+  const [links, setLinks] = useState<Record<string, string>>({});
+  const [loadedFor, setLoadedFor] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  if (row && row.id !== loadedFor) {
+    setLoadedFor(row.id);
+    setLinks({ ...(row.store_links ?? {}) });
+  }
+  async function save() {
+    if (!row) return;
+    setBusy(true);
+    try {
+      await api(`/api/admin/submissions/${row.id}/links`, { method: 'PUT', body: { links } });
+      toast('Store links saved. The author sees them in Distribution Channels.');
+      onClose();
+    } catch (e) {
+      toast(errorText(e), 'error');
+    }
+    setBusy(false);
+  }
+  const stores = (row?.platforms ?? []).filter((p) => p in PLATFORMS) as PlatformId[];
+  return (
+    <Modal open={!!row} onClose={onClose} title={row ? `Store links: ${row.books?.title ?? ''}` : ''}>
+      <div className="space-y-3">
+        <p className="text-[14px] text-ink-muted">Paste the link to the book’s page in each store once it’s live.</p>
+        {stores.map((p) => (
+          <Field key={p} label={PLATFORMS[p].label} htmlFor={`sl-${p}`}>
+            <input id={`sl-${p}`} className="field" placeholder="https://" value={links[p] ?? ''} onChange={(e) => setLinks({ ...links, [p]: e.target.value })} />
+          </Field>
+        ))}
+        <Button onClick={save} loading={busy}>Save links</Button>
+      </div>
     </Modal>
   );
 }

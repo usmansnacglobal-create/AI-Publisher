@@ -186,10 +186,10 @@ The reason is shown on the Publish tab. If you can address it, make the changes 
     title: 'What AI tokens are and what uses them',
     summary: 'Your monthly AI allowance, explained.',
     answer:
-      'AI tokens measure how much AI work you do. Writing, editing, proofreading, planning, cover artwork and narration all use them, roughly in proportion to the amount of text. Free includes 30,000 a month, Pro 500,000 and Agency 2,000,000. See exactly where they went on the **AI usage** page.',
+      'AI tokens measure how much AI work you do. Writing, editing, proofreading, planning, cover artwork and narration all use them, roughly in proportion to the amount of text. Free includes 30,000 a month, Pro 500,000 and Agency 2,000,000. See exactly where they went on the **Credits & AI Tokens** page.',
     questions: ['how much ai do i have left', 'how many tokens are left', 'check my remaining tokens', 'what are tokens', 'how many tokens do i have', 'what uses tokens', 'how much does a chapter cost in tokens', 'token usage', 'ai credits', 'how many words can i write', 'where did my tokens go'],
     keywords: ['left', 'remaining', 'tokens', 'token', 'credits', 'allowance', 'usage', 'quota', 'limit', 'ai', 'words', 'monthly', 'consume', 'cost'],
-    action: { label: 'See AI usage', href: '/dashboard/usage' },
+    action: { label: 'See Credits & AI Tokens', href: '/dashboard/usage' },
     related: ['tokens-run-out', 'plans-compared', 'upgrade'],
     pages: ['home', 'usage'],
     body: `Every AI request uses tokens, both for what the AI reads (your notes, book details, story bible, the chapter) and for what it writes. As a rough guide, a 1,500-word chapter uses a few thousand tokens.
@@ -209,7 +209,7 @@ Unused tokens don't carry over. Your allowance resets each billing cycle; the da
 ### What doesn't use tokens
 Typing and formatting, the layout preview and downloads, designing the cover lettering, publishing steps you fill in yourself, and this Help assistant.
 
-The **AI usage** page shows tokens per day and by feature for this cycle.`,
+The **Credits & AI Tokens** page shows tokens per day and by feature for this cycle.`,
   },
   {
     slug: 'tokens-run-out',
@@ -217,7 +217,7 @@ The **AI usage** page shows tokens per day and by feature for this cycle.`,
     title: 'Running low on or out of AI tokens',
     summary: 'Warnings, what stops working and what to do.',
     answer:
-      'You’ll get a warning at 80% and at 100% of your monthly tokens. When they run out, AI features pause until your allowance resets (the date is shown in the sidebar), but you can still write, edit, lay out and export. To keep using AI now, upgrade your plan on **Plan and billing**.',
+      'You’ll get a warning at 80% and at 100% of your monthly tokens. When they run out, AI features pause until your allowance resets (the date is shown in the sidebar), but you can still write, edit, lay out and export. To keep using AI now, upgrade your plan on **Billing & Subscriptions**.',
     questions: ['i ran out of tokens', 'out of tokens', 'tokens used up', 'not enough tokens', 'when do my tokens reset', 'can i buy more tokens', 'ai stopped working tokens', 'token limit reached'],
     keywords: ['out', 'run', 'ran', 'exhausted', 'low', 'reset', 'renew', 'more', 'buy', 'extra', 'limit', 'tokens'],
     action: { label: 'Change plan', href: '/dashboard/billing' },
@@ -237,13 +237,13 @@ There aren't separate token top-ups. To get more now, upgrade: Pro has 500,000 a
     title: 'Upgrading or changing your plan',
     summary: 'Pay with PayPal or a card.',
     answer:
-      'Go to **Plan and billing**, choose the plan and pay with PayPal or a card through the PayPal button. The new plan starts straight away, with its full token allowance and tools.',
+      'Go to **Billing & Subscriptions**, choose the plan and pay with PayPal or a card through the PayPal button. The new plan starts straight away, with its full token allowance and tools.',
     questions: ['how do i upgrade', 'upgrade to pro', 'upgrade to agency', 'change my plan', 'switch plan', 'pay for a plan', 'how do i pay', 'can i pay by card', 'payment methods', 'buy pro'],
     keywords: ['upgrade', 'change', 'switch', 'plan', 'pay', 'payment', 'paypal', 'card', 'credit', 'debit', 'buy', 'subscribe', 'subscription'],
-    action: { label: 'Go to Plan and billing', href: '/dashboard/billing' },
+    action: { label: 'Go to Billing & Subscriptions', href: '/dashboard/billing' },
     related: ['plans-compared', 'cancel-plan', 'payment-failed', 'receipts'],
     pages: ['billing'],
-    body: `1. Open **Plan and billing** in the sidebar.
+    body: `1. Open **Billing & Subscriptions** in the sidebar.
 2. Under the plan you want, click **Upgrade to Pro** or **Upgrade to Agency** (or **Switch to …**).
 3. Pay with your PayPal account or a debit or credit card in the PayPal window.
 4. You'll see **Welcome to Pro** (or Agency) when it's confirmed.
@@ -256,13 +256,13 @@ Payments are handled securely by PayPal; we never see your card details. Plans r
     title: 'Cancelling your plan',
     summary: 'Cancel any time; you keep the plan until the end of the period.',
     answer:
-      'On **Plan and billing**, click **Cancel plan** and confirm. You keep your plan until the end of the period you’ve paid for, then move to Free. Your books stay, but Free allows only 1 new book and the Pro tools lock.',
+      'On **Billing & Subscriptions**, click **Cancel plan** and confirm. You keep your plan until the end of the period you’ve paid for, then move to Free. Your books stay, but Free allows only 1 new book and the Pro tools lock.',
     questions: ['how do i cancel', 'cancel my subscription', 'stop paying', 'unsubscribe', 'cancel pro', 'downgrade to free', 'what happens when i cancel', 'refund'],
     keywords: ['cancel', 'cancellation', 'unsubscribe', 'stop', 'downgrade', 'free', 'refund', 'end', 'subscription'],
-    action: { label: 'Go to Plan and billing', href: '/dashboard/billing' },
+    action: { label: 'Go to Billing & Subscriptions', href: '/dashboard/billing' },
     related: ['upgrade', 'book-limit', 'delete-account'],
     pages: ['billing'],
-    body: `1. Open **Plan and billing**.
+    body: `1. Open **Billing & Subscriptions**.
 2. Click **Cancel plan**, then confirm.
 3. You'll see the date your plan runs until.
 
@@ -280,10 +280,10 @@ For refund questions, please contact support.`,
     title: 'A payment didn’t go through',
     summary: 'Update your payment method in PayPal to keep your plan.',
     answer:
-      'If a renewal fails you’ll see a notice on **Plan and billing** and get a notification. Update your payment method in your PayPal account so PayPal can retry; if it can’t, the plan moves to Free and you can upgrade again any time.',
+      'If a renewal fails you’ll see a notice on **Billing & Subscriptions** and get a notification. Update your payment method in your PayPal account so PayPal can retry; if it can’t, the plan moves to Free and you can upgrade again any time.',
     questions: ['payment failed', 'my payment did not go through', 'card declined', 'paypal error', 'update payment method', 'change my card'],
     keywords: ['payment', 'failed', 'declined', 'card', 'paypal', 'update', 'method', 'renewal', 'error'],
-    action: { label: 'Go to Plan and billing', href: '/dashboard/billing' },
+    action: { label: 'Go to Billing & Subscriptions', href: '/dashboard/billing' },
     related: ['upgrade', 'receipts'],
     pages: ['billing'],
     body: `- **At checkout**: if PayPal couldn't complete the payment, nothing was charged. Try again or use a different card.
@@ -297,13 +297,13 @@ If the payment still can't be taken, your plan moves to Free. Your books are kep
     title: 'Receipts and billing history',
     summary: 'Where to find past payments.',
     answer:
-      'Your payments are listed under **Billing history** on the **Plan and billing** page. PayPal also emails you a receipt for every payment.',
+      'Your payments are listed under **Billing history** on the **Billing & Subscriptions** page. PayPal also emails you a receipt for every payment.',
     questions: ['where are my receipts', 'invoice', 'billing history', 'payment history', 'proof of payment', 'vat invoice'],
     keywords: ['receipt', 'receipts', 'invoice', 'invoices', 'billing', 'history', 'payments', 'vat'],
-    action: { label: 'Go to Plan and billing', href: '/dashboard/billing' },
+    action: { label: 'Go to Billing & Subscriptions', href: '/dashboard/billing' },
     related: ['upgrade', 'payment-failed'],
     pages: ['billing'],
-    body: `- **Plan and billing → Billing history** lists every payment with its date, description and amount.
+    body: `- **Billing & Subscriptions → Billing history** lists every payment with its date, description and amount.
 - PayPal sends a receipt by email for each payment, and keeps them in your PayPal account.
 
 For a formal invoice, contact support.`,
@@ -324,7 +324,7 @@ For a formal invoice, contact support.`,
 - **Pro**: up to 10 books
 - **Agency**: unlimited
 
-When you reach your limit, upgrade on **Plan and billing**, or delete a book you no longer need. Deleting a book is permanent, so download a copy first if you want to keep it.`,
+When you reach your limit, upgrade on **Billing & Subscriptions**, or delete a book you no longer need. Deleting a book is permanent, so download a copy first if you want to keep it.`,
   },
   {
     slug: 'delete-book',
@@ -445,7 +445,7 @@ Settings → Security → **Turn off**. If you've lost access to your authentica
 2. Under **Devices**, click **Sign out other devices**.
 3. Change your password, and consider turning on two-factor sign-in.
 
-The **Activity** page lists security events on your account.`,
+The **System Activity Logs** page lists security events on your account.`,
   },
   {
     slug: 'themes',
@@ -502,13 +502,13 @@ The **Notifications** page in the sidebar shows them all, with a count of unread
     title: 'Your activity log',
     summary: 'A record of everything on your account.',
     answer:
-      'The **Activity** page lists everything on your account: books created, AI work, exports, publishing, billing and security events, newest first.',
+      'The **System Activity Logs** page lists everything on your account: books created, AI work, exports, publishing, billing and security events, newest first.',
     questions: ['activity log', 'what happened on my account', 'history of my account', 'audit log', 'who changed my book'],
     keywords: ['activity', 'log', 'history', 'audit', 'record', 'events'],
     action: { label: 'Open Activity', href: '/dashboard/activity' },
     related: ['devices', 'notifications'],
     pages: ['activity'],
-    body: `Open **Activity** in the sidebar to see a record of books, AI work, exports, publishing, billing and security events on your account, newest first.`,
+    body: `Open **System Activity Logs** in the sidebar to see a record of books, AI work, exports, publishing, billing and security events on your account, newest first.`,
   },
   {
     slug: 'automations',
@@ -624,7 +624,7 @@ If you see **Couldn't save. Retrying when you type.**, your connection dropped. 
     title: 'A tab says it’s part of Pro',
     summary: 'Why some tools are locked on the Free plan.',
     answer:
-      'The story bible, proofreading, print PDF and live layout preview, cover designer, audiobook and publishing are part of the **Pro** and **Agency** plans. Upgrade on **Plan and billing** to unlock them straight away.',
+      'The story bible, proofreading, print PDF and live layout preview, cover designer, audiobook and publishing are part of the **Pro** and **Agency** plans. Upgrade on **Billing & Subscriptions** to unlock them straight away.',
     questions: ['why is this locked', 'feature locked', 'it says included in pro', 'upgrade to use this', 'cant use the cover designer', 'cant proofread'],
     keywords: ['locked', 'pro', 'upgrade', 'included', 'unavailable', 'feature', 'paid'],
     action: { label: 'See plans', href: '/dashboard/billing' },
@@ -638,5 +638,83 @@ If you see **Couldn't save. Retrying when you type.**, your connection dropped. 
 - The publishing flow and submission
 
 Automations need **Agency**.`,
+  },
+  {
+    slug: 'print-orders',
+    category: 'publish',
+    title: 'Ordering printed copies of your book',
+    summary: 'Order paperbacks or hardcovers, see the price, pay and track delivery.',
+    answer:
+      'Open your book’s **Print copies** tab (or **Print Orders** in the sidebar). Choose paperback or hardcover, how many copies and where they’re going; the price per copy, shipping and total update as you go. Add your delivery address and pay securely with PayPal or a card. You can follow the order from printing to delivery.',
+    questions: ['order printed copies', 'print my book', 'buy copies of my book', 'how much does it cost to print my book', 'print cost calculator', 'order author copies', 'track my print order', 'where is my print order', 'can i get physical copies', 'printing price'],
+    keywords: ['print', 'printing', 'order', 'orders', 'copies', 'physical', 'calculator', 'cost', 'shipping', 'delivery', 'tracking', 'author', 'paperback', 'hardcover'],
+    action: { label: 'Open Print Orders', href: '/dashboard/print-orders' },
+    related: ['approve-layout', 'cover-export', 'hardcover', 'colour-printing'],
+    pages: ['print', 'print-orders', 'format'],
+    body: `### Before you order
+Your print files must be final:
+1. Approve the layout and download **Print interior (PDF)** on the **Layout** tab, so the exact page count is known.
+2. Export your cover on the **Cover** tab (for hardcovers, tick **Also make a hardcover cover** in the brief first).
+
+### Place an order
+1. Open the book's **Print copies** tab.
+2. Choose **Paperback** or **Hardcover**, how many copies, and where they're going.
+3. Check the price: price per copy, printing total, shipping and the total.
+4. Add the delivery address, then click **Continue to payment** and pay with PayPal or a card.
+
+The size, page count, colour and paper come from your final files. To change them, edit the layout and download the print PDF again.
+
+### Price calculator
+**Print Orders** in the sidebar has a calculator for any size, page count, colour and quantity, so you can check prices before your book is finished.
+
+### After you order
+Your order goes through **Paid**, **Printing**, **Shipped** (with tracking when available) and **Delivered**, and you get a notification at each step. Printing takes about 3 to 5 working days, then delivery time depends on the destination.
+
+You can cancel an order until it's paid. For a paid order, contact support.`,
+  },
+  {
+    slug: 'distribution-channels',
+    category: 'publish',
+    title: 'Distribution Channels: where your book is sold',
+    summary: 'Each book’s status in every store, with links once it’s live.',
+    answer:
+      '**Distribution Channels** lists every book and every store by format (ebook, paperback, hardcover, audiobook): which stores you chose, where each one is in the publishing process, and a **View in store** link once the book is live there.',
+    questions: ['distribution channels', 'which stores is my book in', 'link to my book on amazon', 'where is my book sold', 'is my book on apple books yet', 'store links'],
+    keywords: ['distribution', 'channels', 'stores', 'retailers', 'links', 'live', 'where', 'sold', 'amazon', 'kobo'],
+    action: { label: 'Open Distribution Channels', href: '/dashboard/distribution' },
+    related: ['submission-status', 'publish-formats-stores', 'analytics'],
+    pages: ['distribution', 'publishing'],
+    body: `Open **Distribution Channels** under **Publishing & Outbound**.
+
+For each book you'll see the stores grouped by format:
+- **Not selected**: you didn't choose that store when publishing.
+- **Submitted**, **In review**, **Being prepared** or **Sent to store**: it's on its way.
+- **Live**: on sale. When our team adds the store link, it shows as **View in store**.
+- **Problem** or **Not approved**: see the note on the book's Publish tab.
+
+To add stores, publish a new edition or contact support.`,
+  },
+  {
+    slug: 'analytics',
+    category: 'publish',
+    title: 'Performance Analytics: sales and royalties',
+    summary: 'Copies sold, Kindle pages read and royalties by month, store, format and book.',
+    answer:
+      '**Performance Analytics** shows copies sold, Kindle pages read, sales revenue and your royalties, with a chart by month and breakdowns by book, store and format. Our publishing team adds each month’s figures from the stores’ reports, and you get a notification when new figures arrive.',
+    questions: ['how many copies have i sold', 'sales report', 'my royalties', 'performance analytics', 'how is my book selling', 'kindle unlimited pages read', 'sales figures'],
+    keywords: ['analytics', 'sales', 'sold', 'royalties', 'royalty', 'revenue', 'performance', 'report', 'pages', 'read', 'kenp', 'earnings'],
+    action: { label: 'Open Performance Analytics', href: '/dashboard/analytics' },
+    related: ['royalties-payouts', 'distribution-channels', 'dashboard-overview'],
+    pages: ['analytics'],
+    body: `Open **Performance Analytics** under **Publishing & Outbound**.
+
+- **Totals**: copies sold, Kindle pages read (Kindle Unlimited), sales revenue and your royalties, with the change on last month.
+- **Royalties by month**: the last 12 months. Hover over a bar for the figure and copies sold.
+- **By book, by store and by format**: where your sales come from.
+
+Use the buttons at the top to look at one book or all of them.
+
+### When figures appear
+Stores report sales monthly, and our team adds them once the reports arrive, usually in the following month. Figures are in US dollars. For questions about payments to you, see *Royalties, payouts and ISBNs*.`,
   },
 ];

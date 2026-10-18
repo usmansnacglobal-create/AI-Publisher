@@ -8,7 +8,7 @@ export const START_AND_WRITE: HelpArticle[] = [
     title: 'Welcome to AI Publisher',
     summary: 'What you can do here, from first idea to a published book.',
     answer:
-      'AI Publisher takes your book from idea to the stores in one place: plan and write with AI, edit and proofread, design the interior and cover, create an audiobook, then submit it to our publishing team. Start with **My books → New book**.',
+      'AI Publisher takes your book from idea to the stores in one place: plan and write with AI, edit and proofread, design the interior and cover, create an audiobook, then submit it to our publishing team. Start with **Writing Launchpad**.',
     questions: ['what is this', 'what can i do here', 'how does this work', 'where do i start', 'how do i use this tool', 'getting started', 'what does ai publisher do', 'give me a tour'],
     keywords: ['overview', 'introduction', 'start', 'begin', 'tour', 'features', 'help'],
     action: { label: 'Start a new book', href: '/dashboard/books/new' },
@@ -35,25 +35,38 @@ Each book has tabs along the top for these steps: Overview, Write, Story bible, 
     title: 'Finding your way around',
     summary: 'The sidebar, your home page and each book’s tabs.',
     answer:
-      'The sidebar on the left takes you to **Home**, **My books**, **Writing**, **Publishing**, **AI usage**, **Plan and billing**, **Activity**, **Notifications**, **Settings** and **Help**. Inside a book, the tabs along the top take you through each step from writing to publishing.',
-    questions: ['where is the menu', 'how do i navigate', 'where can i find my books', 'what is on the dashboard', 'where is the sidebar', 'where are my settings', 'how do i get back home'],
-    keywords: ['navigate', 'navigation', 'menu', 'sidebar', 'home', 'dashboard', 'tabs', 'layout'],
+      'The sidebar groups everything the way the original AI Content Publisher did: **Home** and **Dashboard Overview**, then **Content Creation Hub** (My Library, Writing Launchpad, Document Editor), **Styling & Design Studio** (Layout Typographer, Media & Cover Designer), **Publishing & Outbound** (Publishing, Distribution Channels, Performance Analytics, Print Orders) and **Platform Management** (Credits & AI Tokens, Billing & Subscriptions, System Activity Logs, Settings). Click a group’s title to fold it away.',
+    questions: ['where is the menu', 'where is content creation hub', 'where is styling and design studio', 'where is platform management', 'where is publishing and outbound', 'where is the document editor', 'where is writing launchpad', 'how do i navigate', 'where can i find my books', 'what is on the dashboard', 'where is the sidebar', 'where are my settings', 'how do i get back home'],
+    keywords: ['launchpad', 'library', 'hub', 'studio', 'outbound', 'platform', 'management', 'navigate', 'navigation', 'menu', 'sidebar', 'home', 'dashboard', 'tabs', 'layout'],
     action: { label: 'Go to Home', href: '/dashboard' },
     related: ['welcome', 'book-tabs', 'themes'],
     pages: ['home'],
-    body: `### The sidebar
-- **Home**: your totals, the book you worked on last and recent activity.
-- **My books**: every book you've started. Click one to open it.
-- **Writing**: jump straight into the editor for any book.
-- **Publishing**: the status of every book you've submitted.
-- **AI usage**: how many AI tokens you've used this month and on what.
-- **Plan and billing**: your plan, upgrades, cancellation and receipts.
-- **Activity**: a record of everything on your account.
-- **Notifications**: updates about your books, AI work and billing.
-- **Settings**: profile, appearance, notifications, security, automations.
-- **Help**: these guides and the help assistant.
+    body: `### At the top
+- **Home**: the book you worked on last, your totals and recent activity.
+- **Dashboard Overview**: every book's progress at a glance (writing, layout, cover, audiobook, publishing), AI tokens over the last 30 days, sales and print orders.
 
-At the bottom of the sidebar you'll see your plan and how many AI tokens you've used, plus buttons to switch light/dark theme and sign out.
+### Content Creation Hub
+- **My Library**: every book you've started. Click one to open it.
+- **Writing Launchpad**: start a new book with the AI wizard or upload a manuscript.
+- **Document Editor**: jump straight into the editor for any book.
+
+### Styling & Design Studio
+- **Layout Typographer**: choose a book to design its interior and download print and ebook files.
+- **Media & Cover Designer**: choose a book to design its cover.
+
+### Publishing & Outbound
+- **Publishing**: the status of every book you've submitted.
+- **Distribution Channels**: which stores each book is in, and links to it once it's live.
+- **Performance Analytics**: sales, Kindle pages read and royalties.
+- **Print Orders**: order printed copies and follow each order.
+
+### Platform Management
+- **Credits & AI Tokens**: how many AI tokens you've used this month and on what.
+- **Billing & Subscriptions**: your plan, upgrades, cancellation and receipts.
+- **System Activity Logs**: a record of everything on your account.
+- **Settings**: profile, appearance, notifications, security, automations.
+
+At the bottom: **Notifications** and **Help**, then your plan and AI tokens, the light/dark switch and sign out. Click a group's title to fold it away; the tool remembers your choice.
 
 On a phone, tap the menu icon at the top to open the sidebar.`,
   },
@@ -108,13 +121,13 @@ Links only work once and expire after a while. Try signing in first: if your ema
     title: 'Creating a book with the AI wizard',
     summary: 'Answer a few questions and get a planned book, ready to write.',
     answer:
-      'Go to **My books → New book** and choose **Start with the AI wizard**. You answer questions about the book, your readers, your voice and characters, plan the chapters (or let AI plan them), then choose how you want to write. Your answers are saved as you go.',
+      'Go to **Writing Launchpad** and choose **Start with the AI wizard**. You answer questions about the book, your readers, your voice and characters, plan the chapters (or let AI plan them), then choose how you want to write. Your answers are saved as you go.',
     questions: ['how do i create a book', 'how do i start a new book', 'new book', 'how does the wizard work', 'start writing a book', 'create my first book', 'add a book', 'set up a book'],
     keywords: ['wizard', 'new', 'create', 'start', 'book', 'setup', 'plan', 'genre', 'audience'],
     action: { label: 'Start a new book', href: '/dashboard/books/new' },
     related: ['writing-modes', 'import-manuscript', 'plan-chapters', 'book-details'],
     pages: ['home', 'books', 'new-book'],
-    body: `1. Go to **My books** and click **New book**, then **Start with the AI wizard**.
+    body: `1. Click **Writing Launchpad** in the sidebar (or **New book** in My Library), then **Start with the AI wizard**.
 2. **The basics**: title (a working title is fine), fiction or non-fiction, genre and niche.
 3. **Who is it for?**: your target readers and what they should feel or gain.
 4. **Your voice**: writing style, tone and spelling (US or UK English).
@@ -139,14 +152,14 @@ Before you create the book you'll see an estimate of the AI tokens it will use.
     title: 'Importing a manuscript you’ve already written',
     summary: 'Upload a Word, PDF, text or Markdown file and it’s split into chapters.',
     answer:
-      'Choose **My books → New book → Upload a manuscript**, or use **Import manuscript** on a book’s Overview tab. Word (.docx), PDF, text (.txt) and Markdown (.md) files up to 40 MB work, and Word files keep their pictures. Chapters are split at headings like “Chapter 1” or “Prologue”.',
+      'Choose **Writing Launchpad → Upload a manuscript**, or use **Import manuscript** on a book’s Overview tab. Word (.docx), PDF, text (.txt) and Markdown (.md) files up to 40 MB work, and Word files keep their pictures. Chapters are split at headings like “Chapter 1” or “Prologue”.',
     questions: ['how do i upload my manuscript', 'import my book', 'upload a word document', 'can i upload a pdf', 'can i import a pdf manuscript', 'which file types can i import', 'import docx', 'i already wrote my book', 'bring my existing book in', 'upload file'],
     keywords: ['import', 'upload', 'manuscript', 'docx', 'word', 'pdf', 'txt', 'markdown', 'file', 'existing'],
     action: { label: 'Upload a manuscript', href: '/dashboard/books/new' },
     related: ['import-problems', 'editor-basics', 'chapters-manage'],
     pages: ['books', 'new-book'],
     body: `### Start a new book from a file
-1. Go to **My books → New book** and choose **Upload a manuscript**.
+1. Go to **Writing Launchpad** and choose **Upload a manuscript**.
 2. Drag in your file or click to choose it.
 3. Pick the book type and genre, then click **Import and open the editor**.
 
@@ -531,5 +544,24 @@ Printed pictures need about 300 dots per inch. The image window shows how sharp 
 - In a black-and-white book, pictures print in greyscale, and the editor previews them that way. For colour, change the printing on the Layout tab.
 - When AI rewrites or edits a chapter, your pictures stay in place.
 - Only use pictures you own or have permission to use.`,
+  },
+  {
+    slug: 'dashboard-overview',
+    category: 'start',
+    title: 'Dashboard Overview',
+    summary: 'Every book, your AI tokens, sales and print orders in one view.',
+    answer:
+      '**Dashboard Overview** shows your totals (books, words, AI tokens left, copies sold, royalties, print orders), a chart of AI tokens used over the last 30 days, recent activity, and a table of every book with its writing, layout, cover, audiobook and publishing status plus the next step to take.',
+    questions: ['dashboard overview', 'see all my books progress', 'overview of everything', 'where can i see my stats', 'summary of my account'],
+    keywords: ['overview', 'dashboard', 'stats', 'statistics', 'summary', 'progress', 'glance'],
+    action: { label: 'Open Dashboard Overview', href: '/dashboard/overview' },
+    related: ['dashboard-tour', 'analytics', 'tokens-explained'],
+    pages: ['overview', 'home'],
+    body: `Open **Dashboard Overview** near the top of the sidebar.
+
+- **Totals**: books (and how many are live), words written, AI tokens left this month, copies sold, royalties and print orders.
+- **AI tokens, last 30 days**: one bar per day. Hover over a bar to see the exact number.
+- **Recent activity**: the latest things that happened on your account.
+- **Your books at a glance**: for each book, how much is written, whether the layout is approved, whether the cover is ready for ebook or print, how many chapters are narrated, the publishing status, and a link to the next step.`,
   },
 ];

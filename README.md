@@ -28,7 +28,7 @@ You need accounts with GitHub, Vercel, Supabase, Anthropic, OpenAI and (before c
 
 ### 1. Supabase
 1. Create a project at [supabase.com](https://supabase.com). Choose a region near your authors (for example London).
-2. Open **SQL Editor → New query**, paste everything from `supabase/migrations/0001_init.sql`, and click **Run**. Then do the same with `0002_old_tool_features.sql` and `0003_print_options.sql` (each is safe to run more than once).
+2. Open **SQL Editor → New query**, paste everything from `supabase/migrations/0001_init.sql`, and click **Run**. Then do the same with `0002_old_tool_features.sql` `0003_print_options.sql` and `0004_print_orders_and_analytics.sql` (each is safe to run more than once).
 3. **Authentication → URL Configuration**: set **Site URL** to your site's address (for example `https://aipublisher.com`) and add `https://aipublisher.com/**` under **Redirect URLs**.
 4. **Project Settings → API**: copy the **Project URL**, the **anon public** key and the **service_role** key for step 3.
 
@@ -88,3 +88,15 @@ The print interior uses EB Garamond (SIL Open Font License), bundled in `src/ass
 - The help assistant (the **Help** button) answers from these guides only. It runs in the browser with no AI calls, so it costs nothing and uses no tokens.
 - Messages sent with **Contact support** appear in **Support inbox** (`/admin/support`) and as notifications for admins. The inbox also lists questions the assistant couldn't answer and guide ratings, so you can see which guides to improve.
 - `npm test` checks the assistant against a list of real-world questions (`tests/help.test.ts`). Add new phrasings there when you add guides.
+
+## Print orders
+
+- Authors order printed copies from a book's **Print copies** tab once the layout is approved, the print PDF downloaded and the cover exported. **Print Orders** in the sidebar lists their orders and has a price calculator.
+- Price per copy = IngramSpark's printing cost × the markup (2 by default). Set IngramSpark's rates, the markup and shipping by destination at **Admin → Print orders → Print pricing**. Paperback black-and-white starts from IngramSpark's published February 2026 rate ($1.33 a copy + $0.0146 a page); the other rates are estimates to replace with figures from IngramSpark's Print & Ship calculator.
+- With PayPal keys set (`NEXT_PUBLIC_PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, and `PAYPAL_ENV=live` for real payments), authors pay by PayPal or card at checkout. Without them, orders arrive as "Awaiting payment" and admins get a notification to send a payment request.
+- Admins place each paid order with IngramSpark (Print & Ship), then update the status and tracking on the admin page; authors are notified at each step.
+
+## Sales figures and store links
+
+- **Admin → Sales data**: add monthly sales and royalties per book and store (one at a time or by pasting a report). Authors see them in **Performance Analytics** and the **Dashboard Overview**.
+- **Admin → Publishing queue → Store links**: add the link to each store page once a book is live; authors see them in **Distribution Channels**.

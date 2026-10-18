@@ -1,5 +1,5 @@
 import { BookList } from '@/components/book-list';
-export const metadata = { title: 'Writing' };
+export const metadata = { title: 'Document Editor' };
 export default function Page() {
-  return <BookList title="Writing" intro="Choose a book to keep writing." link={(id) => `/dashboard/books/${id}/write`} action="Write" />;
+  return <BookList title="Document Editor" intro="Choose a book to open in the editor." link={(id) => `/dashboard/books/${id}/write`} action="Write" />;
 }

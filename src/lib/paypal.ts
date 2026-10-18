@@ -1,7 +1,8 @@
 import 'server-only';
 import type { PlanId } from './plans';
 
-const BASE = process.env.PAYPAL_ENV === 'live' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com';
+// PAYPAL_API_BASE is only for automated tests against a stand-in PayPal.
+const BASE = process.env.PAYPAL_API_BASE || (process.env.PAYPAL_ENV === 'live' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com');
 
 async function token() {
   const id = process.env.PAYPAL_CLIENT_ID ?? process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
@@ -65,3 +66,30 @@ export async function verifyWebhook(headers: Headers, rawBody: string) {
   });
   return result.verification_status === 'SUCCESS';
 }
+
+// ───────────── One-off payments (print orders) ─────────────
+
+/** Whether one-off PayPal payments can be taken (client id and secret are set). */
+export const paypalReady = () => !!((process.env.PAYPAL_CLIENT_ID ?? process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID) && process.env.PAYPAL_CLIENT_SECRET);
+
+export interface PayPalOrder {
+  id: string;
+  status: 'CREATED' | 'SAVED' | 'APPROVED' | 'VOIDED' | 'COMPLETED' | 'PAYER_ACTION_REQUIRED';
+  purchase_units?: { custom_id?: string; amount?: { value: string; currency_code: string }; payments?: { captures?: { id: string; status: string; amount: { value: string; currency_code: string } }[] } }[];
+}
+
+export const createPayPalOrder = (o: { total: number; currency: string; customId: string; description: string }) =>
+  call<PayPalOrder>('/v2/checkout/orders', {
+    method: 'POST',
+    headers: { 'PayPal-Request-Id': `print-${o.customId}` },
+    body: JSON.stringify({
+      intent: 'CAPTURE',
+      purchase_units: [{ custom_id: o.customId, description: o.description.slice(0, 127), amount: { currency_code: o.currency, value: o.total.toFixed(2) } }],
+      application_context: { shipping_preference: 'NO_SHIPPING', brand_name: 'AI Publisher', user_action: 'PAY_NOW' },
+    }),
+  });
+
+export const capturePayPalOrder = (id: string) =>
+  call<PayPalOrder>(`/v2/checkout/orders/${encodeURIComponent(id)}/capture`, { method: 'POST', body: '{}', headers: { 'PayPal-Request-Id': `capture-${id}` } });
+
+export const getPayPalOrder = (id: string) => call<PayPalOrder>(`/v2/checkout/orders/${encodeURIComponent(id)}`);

@@ -18,7 +18,7 @@ export default async function NewBook() {
         </PageHeader>
         <div className="flex gap-2">
           <ButtonLink href="/dashboard/billing">See plans</ButtonLink>
-          <ButtonLink href="/dashboard/books" variant="secondary">My books</ButtonLink>
+          <ButtonLink href="/dashboard/books" variant="secondary">My Library</ButtonLink>
         </div>
       </div>
     );

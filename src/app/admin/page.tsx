@@ -33,7 +33,7 @@ export default async function AdminPage() {
   return (
     <main className="mx-auto max-w-[1100px] px-4 py-8">
       <Link href="/dashboard" className="text-[13px] text-ink-muted">Back to dashboard</Link>
-      <div className="mb-6 mt-1 flex flex-wrap items-center justify-between gap-3"><h1>Publishing queue</h1><Link href="/admin/support" className="rounded border border-line-strong px-3 py-1.5 text-[14px] hover:border-ink-faint">Support inbox</Link></div>
+      <div className="mb-6 mt-1 flex flex-wrap items-center justify-between gap-3"><h1>Publishing queue</h1><span className="flex flex-wrap gap-2"><Link href="/admin/support" className="rounded border border-line-strong px-3 py-1.5 text-[14px] hover:border-ink-faint">Support inbox</Link><Link href="/admin/print" className="rounded border border-line-strong px-3 py-1.5 text-[14px] hover:border-ink-faint">Print orders</Link><Link href="/admin/sales" className="rounded border border-line-strong px-3 py-1.5 text-[14px] hover:border-ink-faint">Sales data</Link></span></div>
       <Queue rows={rows} />
     </main>
   );

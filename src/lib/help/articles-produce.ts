@@ -76,7 +76,7 @@ It works best when your story bible is filled in, so run **Build from manuscript
       'Open the **Layout** tab. Choose the trim size and paper, body font and size, chapter heading style, paragraph style, line spacing, drop caps, page numbers and running heads, plus front and back matter. The live preview updates as you go and your choices save automatically. The live preview and print PDF are part of Pro.',
     questions: ['how do i format my book', 'change the font', 'change the font size', 'interior design', 'typesetting', 'chapter heading style', 'page numbers', 'drop caps', 'margins', 'formatting for print', 'make it look like a real book'],
     keywords: ['layout', 'format', 'formatting', 'interior', 'typeset', 'typesetting', 'font', 'fonts', 'size', 'heading', 'headings', 'margins', 'page', 'numbers', 'running', 'heads', 'header', 'drop', 'caps', 'spacing', 'indent', 'dedication', 'copyright', 'preview'],
-    action: { label: 'Open My books', href: '/dashboard/books' },
+    action: { label: 'Open My Library', href: '/dashboard/books' },
     related: ['trim-sizes', 'approve-layout', 'downloads'],
     pages: ['format'],
     body: `Open your book and click **Layout**. The preview on the right updates as you make changes, and every change saves automatically.
@@ -174,7 +174,7 @@ If you edit any chapter after approving, the layout is marked outdated. Look ove
       'Open the **Cover** tab. **1. Brief**: describe the book, mood and style, and write the back cover. **2. Create**: generate artwork with AI, pick a template or upload your own image. **3. Design**: add the title and your name with real fonts, plus the spine and back. **4. Finalize and export**: check the preflight list and export ebook, social and print files. Pro and Agency.',
     questions: ['how do i make a cover', 'design a cover', 'create book cover', 'cover designer', 'how does the cover tool work', 'i need a cover'],
     keywords: ['cover', 'covers', 'design', 'designer', 'artwork', 'front', 'brief', 'studio'],
-    action: { label: 'Open My books', href: '/dashboard/books' },
+    action: { label: 'Open My Library', href: '/dashboard/books' },
     related: ['cover-brief', 'cover-ai', 'cover-own-image', 'cover-design', 'cover-export'],
     pages: ['cover'],
     body: `The cover designer has four steps along the top. You can move back and forth between them.

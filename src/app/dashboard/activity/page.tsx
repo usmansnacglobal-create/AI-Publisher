@@ -2,7 +2,7 @@ import { getViewer } from '@/lib/data';
 import { describeActivity } from '@/lib/activity';
 import { PageHeader } from '@/components/ui';
 
-export const metadata = { title: 'Activity' };
+export const metadata = { title: 'System Activity Logs' };
 
 export default async function ActivityPage() {
   const { supabase } = await getViewer();
@@ -14,7 +14,7 @@ export default async function ActivityPage() {
   }
   return (
     <div className="mx-auto max-w-[760px]">
-      <PageHeader title="Activity">A record of everything on your account: books, AI work, exports, publishing, billing and security.</PageHeader>
+      <PageHeader title="System Activity Logs">A record of everything on your account: books, AI work, exports, publishing, billing and security.</PageHeader>
       {!data?.length && <p className="text-ink-muted">Nothing yet.</p>}
       <div className="space-y-8">
         {[...groups.entries()].map(([day, items]) => (
