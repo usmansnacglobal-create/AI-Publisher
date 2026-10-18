@@ -254,7 +254,7 @@ export function Format({ book, words, chapterCount, canPrint }: { book: Book; wo
           ) : !words ? (
             <div className="panel p-6 text-[14px] text-ink-muted">Write your first chapter to see it previewed here.</div>
           ) : preview ? (
-            <iframe src={`${preview}#view=FitH&toolbar=0`} title="Print preview" className={clsx('h-[78vh] w-full rounded-md border border-line bg-white', previewing && 'opacity-60')} />
+            <iframe src={`${preview}#view=FitH&toolbar=0`} title="Print preview" className={clsx('h-[78vh] w-full rounded-md border border-line bg-[#fff]', previewing && 'opacity-60')} />
           ) : (
             <div className="panel grid h-[50vh] place-items-center text-ink-muted">Preparing preview…</div>
           )}

@@ -4,6 +4,7 @@ import '@fontsource-variable/newsreader/opsz.css';
 import '@fontsource-variable/newsreader/opsz-italic.css';
 import './globals.css';
 import { ToastProvider } from '@/components/toast';
+import { THEME_SCRIPT } from '@/lib/theme';
 
 export const metadata: Metadata = {
   title: { default: 'AI Publisher', template: '%s · AI Publisher' },
@@ -12,7 +13,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body>
         <ToastProvider>{children}</ToastProvider>
       </body>

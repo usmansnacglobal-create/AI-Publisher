@@ -41,12 +41,12 @@ export default async function Home() {
       </dl>
 
       {current && (
-        <section className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-md bg-cloth px-5 py-4 text-white">
+        <section className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-md bg-[rgb(var(--c-banner))] px-5 py-4 text-[rgb(var(--c-on-banner))]">
           <div>
-            <p className="text-[13px] text-white/75">Pick up where you left off</p>
+            <p className="text-[13px] opacity-75">Pick up where you left off</p>
             <p className="font-serif text-[1.3rem]">{current.title}</p>
           </div>
-          <Link href={`/dashboard/books/${current.id}/write`} className="rounded bg-white px-4 py-2 text-[14px] font-medium text-cloth-dark hover:bg-white/90">
+          <Link href={`/dashboard/books/${current.id}/write`} className="rounded bg-sheet px-4 py-2 text-[14px] font-medium text-cloth-dark hover:bg-sheet/90">
             Continue writing
           </Link>
         </section>

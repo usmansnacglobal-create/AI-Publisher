@@ -1,19 +1,22 @@
 import type { Config } from 'tailwindcss';
 
 export default {
+  darkMode: ['selector', "[data-theme='dark']"],
   content: ['./src/**/*.{ts,tsx}'],
   theme: {
     extend: {
+      // Every colour comes from a CSS variable, so the light, sepia and dark themes swap in globals.css.
       colors: {
-        ground: '#EEF0EC', // page background: cool, slightly green-grey
-        sheet: '#FFFFFF',
-        ink: { DEFAULT: '#1C2230', soft: '#3A4252', muted: '#5E6675', faint: '#8B92A0' },
-        line: { DEFAULT: '#D9DCD4', strong: '#BFC4BA' },
-        cloth: { DEFAULT: '#2F5D50', dark: '#244A40', light: '#E3ECE8' }, // bookcloth green
-        gilt: { DEFAULT: '#A8833A', light: '#F3ECDD' }, // foil-stamp gold, used sparingly
-        danger: { DEFAULT: '#A8402E', light: '#F6E4DF' },
-        added: { DEFAULT: '#2C6A4A', bg: '#E2F0E7' },
-        removed: { DEFAULT: '#9C3727', bg: '#F8E3DE' },
+        white: 'rgb(var(--c-on-accent) / <alpha-value>)', // text on filled buttons and badges; dark in the dark theme
+        ground: 'rgb(var(--c-ground) / <alpha-value>)',
+        sheet: 'rgb(var(--c-sheet) / <alpha-value>)',
+        ink: { DEFAULT: 'rgb(var(--c-ink) / <alpha-value>)', soft: 'rgb(var(--c-ink-soft) / <alpha-value>)', muted: 'rgb(var(--c-ink-muted) / <alpha-value>)', faint: 'rgb(var(--c-ink-faint) / <alpha-value>)' },
+        line: { DEFAULT: 'rgb(var(--c-line) / <alpha-value>)', strong: 'rgb(var(--c-line-strong) / <alpha-value>)' },
+        cloth: { DEFAULT: 'rgb(var(--c-cloth) / <alpha-value>)', dark: 'rgb(var(--c-cloth-dark) / <alpha-value>)', light: 'rgb(var(--c-cloth-light) / <alpha-value>)' }, // bookcloth green
+        gilt: { DEFAULT: 'rgb(var(--c-gilt) / <alpha-value>)', light: 'rgb(var(--c-gilt-light) / <alpha-value>)', ink: 'rgb(var(--c-gilt-ink) / <alpha-value>)' }, // foil-stamp gold, used sparingly
+        danger: { DEFAULT: 'rgb(var(--c-danger) / <alpha-value>)', light: 'rgb(var(--c-danger-light) / <alpha-value>)' },
+        added: { DEFAULT: 'rgb(var(--c-added) / <alpha-value>)', bg: 'rgb(var(--c-added-bg) / <alpha-value>)' },
+        removed: { DEFAULT: 'rgb(var(--c-removed) / <alpha-value>)', bg: 'rgb(var(--c-removed-bg) / <alpha-value>)' },
       },
       fontFamily: {
         sans: ['"Figtree Variable"', 'system-ui', 'sans-serif'],

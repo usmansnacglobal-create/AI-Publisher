@@ -7,12 +7,13 @@ import { createClient } from '@/lib/supabase/client';
 import { api, errorText } from '@/lib/client';
 import { Badge, Button, Field, Modal, PageHeader } from '@/components/ui';
 import { useToast } from '@/components/toast';
+import { ThemePicker } from '@/components/theme-picker';
 
 type Profile = Record<string, unknown> & {
   id: string; full_name: string; pen_name: string; bio: string; website: string; twitter: string; linkedin: string; location: string; language: string;
   avatar_path: string | null; notification_prefs: Record<string, unknown>; webhook_url: string | null; plan: string;
 };
-const TABS = [['profile', 'Profile'], ['notifications', 'Notifications'], ['security', 'Security'], ['integrations', 'Automations'], ['danger', 'Delete account']] as const;
+const TABS = [['profile', 'Profile'], ['appearance', 'Appearance'], ['notifications', 'Notifications'], ['security', 'Security'], ['integrations', 'Automations'], ['danger', 'Delete account']] as const;
 
 export function Settings({ tab, profile, email, avatarUrl }: { tab: string; profile: Profile; email: string; avatarUrl: string | null }) {
   return (
@@ -24,6 +25,13 @@ export function Settings({ tab, profile, email, avatarUrl }: { tab: string; prof
         ))}
       </nav>
       {tab === 'profile' && <ProfileTab profile={profile} email={email} avatarUrl={avatarUrl} />}
+      {tab === 'appearance' && (
+        <section className="panel space-y-3 p-5">
+          <h2 className="text-[1.15rem]">Theme</h2>
+          <p className="text-[14px] text-ink-muted">Choose how AI Publisher looks on this device. Your book files, covers and exports aren’t affected.</p>
+          <ThemePicker />
+        </section>
+      )}
       {tab === 'notifications' && <NotificationsTab profile={profile} />}
       {tab === 'security' && <SecurityTab />}
       {tab === 'integrations' && <IntegrationsTab profile={profile} />}
@@ -238,7 +246,7 @@ function SecurityTab() {
           <div className="space-y-4 text-[14px]">
             <p>1. Scan this code with your authenticator app.</p>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={enroll.qr} alt="QR code for your authenticator app" className="mx-auto h-48 w-48 rounded bg-white p-2" />
+            <img src={enroll.qr} alt="QR code for your authenticator app" className="mx-auto h-48 w-48 rounded bg-[#fff] p-2" />
             <p className="text-ink-muted">Can’t scan? Enter this key: <code className="break-all rounded bg-ground px-1">{enroll.secret}</code></p>
             <Field label="2. Enter the 6-digit code it shows" htmlFor="code">
               <input id="code" className="field tracking-[0.3em]" inputMode="numeric" maxLength={6} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} />

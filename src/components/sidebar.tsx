@@ -7,6 +7,7 @@ import { Bell, BookOpen, CreditCard, Gauge, History, LayoutGrid, LogOut, Menu, S
 import { createClient } from '@/lib/supabase/client';
 import { compact } from '@/lib/text';
 import { Progress } from './ui';
+import { ThemeToggle } from './theme-picker';
 
 const NAV = [
   { href: '/dashboard', label: 'Home', icon: LayoutGrid, exact: true },
@@ -49,7 +50,7 @@ export function Sidebar({ name, isAdmin, unread, usage }: { name: string; isAdmi
                 aria-current={active ? 'page' : undefined}
                 className={clsx(
                   'flex items-center gap-3 rounded px-3 py-2 text-[14px]',
-                  active ? 'bg-sheet font-medium text-ink shadow-[inset_2px_0_0_#2F5D50]' : 'text-ink-soft hover:bg-sheet/60',
+                  active ? 'bg-sheet font-medium text-ink shadow-[inset_2px_0_0_rgb(var(--c-cloth))]' : 'text-ink-soft hover:bg-sheet/60',
                 )}
               >
                 <Icon className="h-4 w-4 shrink-0" aria-hidden />
@@ -76,9 +77,12 @@ export function Sidebar({ name, isAdmin, unread, usage }: { name: string; isAdmi
       </div>
       <div className="flex items-center justify-between gap-2 border-t border-line px-5 py-3 text-[13px]">
         <span className="truncate text-ink-soft">{name}</span>
-        <button onClick={signOut} className="flex items-center gap-1 text-ink-muted hover:text-ink" aria-label="Sign out">
-          <LogOut className="h-4 w-4" />
-        </button>
+        <span className="flex items-center gap-3">
+          <ThemeToggle />
+          <button onClick={signOut} className="flex items-center gap-1 text-ink-muted hover:text-ink" aria-label="Sign out">
+            <LogOut className="h-4 w-4" />
+          </button>
+        </span>
       </div>
     </nav>
   );
@@ -94,7 +98,7 @@ export function Sidebar({ name, isAdmin, unread, usage }: { name: string; isAdmi
       <aside className="sticky top-0 hidden h-screen border-r border-line lg:block">{nav}</aside>
       {open && (
         <div className="fixed inset-0 z-40 lg:hidden">
-          <div className="absolute inset-0 bg-ink/40" onClick={() => setOpen(false)} />
+          <div className="absolute inset-0 bg-[#0B0D10]/50" onClick={() => setOpen(false)} />
           <aside className="absolute inset-y-0 left-0 w-[270px] bg-ground">
             <button onClick={() => setOpen(false)} className="absolute right-3 top-5 rounded p-1 hover:bg-ink/5" aria-label="Close menu">
               <X className="h-5 w-5" />

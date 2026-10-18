@@ -63,7 +63,7 @@ export function Badge({ children, tone = 'neutral' }: { children: React.ReactNod
         'inline-flex items-center rounded-sm px-1.5 py-0.5 text-[12px] font-medium',
         tone === 'neutral' && 'bg-ink/[.06] text-ink-soft',
         tone === 'cloth' && 'bg-cloth-light text-cloth-dark',
-        tone === 'gilt' && 'bg-gilt-light text-[#7A5E25]',
+        tone === 'gilt' && 'bg-gilt-light text-gilt-ink',
         tone === 'danger' && 'bg-danger-light text-danger',
       )}
     >
@@ -85,7 +85,7 @@ export function Modal({ open, onClose, title, children, wide }: { open: boolean;
       ref={ref}
       onClose={onClose}
       onClick={(e) => e.target === ref.current && onClose()}
-      className={clsx('w-[min(94vw,520px)] rounded-lg bg-sheet p-0 text-ink shadow-2xl backdrop:bg-ink/40', wide && 'w-[min(94vw,820px)]')}
+      className={clsx('w-[min(94vw,520px)] rounded-lg bg-sheet p-0 text-ink shadow-2xl backdrop:bg-[#0B0D10]/50', wide && 'w-[min(94vw,820px)]')}
     >
       <div className="flex items-center justify-between border-b border-line px-5 py-3">
         <h2 className="text-[1.15rem]">{title}</h2>

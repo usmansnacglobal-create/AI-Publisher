@@ -263,7 +263,7 @@ export function Editor({ book, chapters: initialList, initialId, canPrint }: { b
           </div>
         )}
 
-        <article className="rounded-sm border border-line bg-sheet px-5 py-8 shadow-[0_1px_0_#D9DCD4,0_8px_24px_-12px_rgba(28,34,48,.18)] sm:px-14 sm:py-12">
+        <article className="rounded-sm border border-line bg-sheet px-5 py-8 shadow-[0_1px_0_rgb(var(--c-line)),0_8px_24px_-12px_rgba(28,34,48,.18)] sm:px-14 sm:py-12">
           <p className="text-center text-[12px] tracking-[0.2em] text-ink-faint">CHAPTER {chapter?.position ?? ''}</p>
           <input
             aria-label="Chapter title"
