@@ -2,6 +2,7 @@ import { requireFeature } from '@/lib/tokens';
 import { z } from 'zod';
 import { handle, json, requireUser, requireBook, HttpError } from '@/lib/api';
 import { readiness } from '@/lib/readiness';
+import { normaliseLayout } from '@/lib/layout';
 import { minPrintPrice, PLATFORM_IDS } from '@/lib/publishing';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { logActivity, notify } from '@/lib/notify';
@@ -23,9 +24,10 @@ export const POST = handle(async (req: Request, { params }: Ctx) => {
   const body = z
     .object({
       platforms: z.array(z.enum(PLATFORM_IDS)).min(1, 'Choose at least one store.'),
-      formats: z.array(z.enum(['ebook', 'paperback', 'audiobook'])).min(1, 'Choose at least one format.'),
+      formats: z.array(z.enum(['ebook', 'paperback', 'hardcover', 'audiobook'])).min(1, 'Choose at least one format.'),
       price: z.number().min(0.99, 'The ebook price must be at least $0.99.').max(250),
       print_price: z.number().max(500).optional(),
+      hardcover_price: z.number().max(500).optional(),
       language: z.string().max(60).default('English'),
       edition: z.string().max(60).default('First Edition'),
       category: z.string().max(150).default(''),
@@ -35,10 +37,15 @@ export const POST = handle(async (req: Request, { params }: Ctx) => {
     .safeParse(await req.json());
   if (!body.success) throw new HttpError(400, body.error.issues[0].message);
 
+  const spec = { trim: book.trim_size, ink: normaliseLayout(book.layout).ink };
   if (body.data.formats.includes('paperback')) {
-    const min = minPrintPrice(book.page_count ?? 0);
+    const min = minPrintPrice(book.page_count ?? 0, spec);
     if (!body.data.print_price || body.data.print_price < min) throw new HttpError(400, `Set a paperback price of at least $${min.toFixed(2)} to cover printing.`);
   }
+  if (body.data.formats.includes('hardcover')) {
+    const min = minPrintPrice(book.page_count ?? 0, { ...spec, binding: 'hardcover' });
+    if (!body.data.hardcover_price || body.data.hardcover_price < min) throw new HttpError(400, `Set a hardcover price of at least $${min.toFixed(2)} to cover printing.`);
+  } else delete body.data.hardcover_price;
   if (body.data.publish_at && new Date(body.data.publish_at) < new Date(Date.now() - 86400000)) throw new HttpError(400, 'Choose a publishing date in the future.');
   const { data: open } = await supabase.from('submissions').select('id,status').eq('book_id', book.id).not('status', 'in', '(live,changes_requested,rejected)');
   if (open?.length) throw new HttpError(409, 'This book already has a submission in progress.');

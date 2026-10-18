@@ -7,10 +7,10 @@ import { useToast } from '@/components/toast';
 
 type Row = {
   id: string; book_id: string; status: string; platforms: string[]; formats: string[]; price: number; isbn: string | null; reviewer_notes: string; created_at: string;
-  books: { id: string; title: string; genre: string; trim_size: string; page_count: number | null } | null;
+  books: { id: string; title: string; genre: string; trim_size: string; page_count: number | null; paper?: string; layout?: { ink?: string } | null } | null;
   profiles: { email: string; full_name: string; pen_name: string } | null;
   frontUrl?: string; wrapUrl?: string; audioUrls?: string[];
-  print_price?: number | null; language?: string; edition?: string; category?: string; publish_at?: string | null; narration_voice?: string | null;
+  print_price?: number | null; hardcover_price?: number | null; language?: string; edition?: string; category?: string; publish_at?: string | null; narration_voice?: string | null;
 };
 const NEXT: Record<string, string[]> = {
   submitted: ['in_review', 'changes_requested', 'rejected'],
@@ -71,7 +71,7 @@ export function Queue({ rows }: { rows: Row[] }) {
                 <p className="text-ink-muted">{r.profiles?.pen_name || r.profiles?.full_name} · {r.profiles?.email}</p>
                 <p className="text-ink-muted">{r.formats.join(', ')} · {r.platforms.join(', ')}</p>
                 <p className="text-ink-muted">
-                  Ebook ${Number(r.price).toFixed(2)}{r.print_price ? ` · Paperback $${Number(r.print_price).toFixed(2)}` : ''} · {r.books?.page_count ?? '?'} pages, {r.books?.trim_size}
+                  Ebook ${Number(r.price).toFixed(2)}{r.print_price ? ` · Paperback $${Number(r.print_price).toFixed(2)}` : ''}{r.hardcover_price ? ` · Hardcover $${Number(r.hardcover_price).toFixed(2)}` : ''} · {r.books?.page_count ?? '?'} pages, {r.books?.trim_size}, {r.books?.layout?.ink === 'premium' ? 'premium colour' : r.books?.layout?.ink === 'standard' ? 'standard colour' : `black and white on ${r.books?.paper ?? 'white'}`}
                   {r.category && ` · ${r.category}`}{r.language && ` · ${r.language}`}{r.edition && ` · ${r.edition}`}
                   {r.publish_at && ` · scheduled ${new Date(r.publish_at).toLocaleDateString('en-GB')}`}{r.narration_voice && ` · voice: ${r.narration_voice}`}
                 </p>

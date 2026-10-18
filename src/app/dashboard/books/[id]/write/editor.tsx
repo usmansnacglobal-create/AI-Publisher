@@ -11,13 +11,20 @@ import { EDIT_ACTIONS } from '@/lib/ai/prompts';
 import { Button, Field, Modal } from '@/components/ui';
 import { useToast } from '@/components/toast';
 import { ManuscriptEditor, type ManuscriptEditorHandle } from '@/components/manuscript-editor';
+import { ImageDialog } from '@/components/image-dialog';
+import type { ImageAttrs } from '@/components/book-image';
+import { normaliseLayout } from '@/lib/layout';
+import { TRIM_SIZES } from '@/lib/spine';
 
 type ListItem = Pick<Chapter, 'id' | 'position' | 'title' | 'synopsis' | 'word_count' | 'status'>;
 type Suggestion = { id: string; kind: string; original: string; replacement: string; reason: string };
 type SaveState = 'saved' | 'saving' | 'unsaved' | 'conflict' | 'error';
 type PanelTab = 'edit' | 'controls' | 'ask' | 'history';
 
-export function Editor({ book, chapters: initialList, initialId, canPrint }: { book: Book; chapters: ListItem[]; initialId: string | null; canPrint: boolean }) {
+export function Editor({ book, chapters: initialList, initialId, canPrint, canGenerateImages }: { book: Book; chapters: ListItem[]; initialId: string | null; canPrint: boolean; canGenerateImages: boolean }) {
+  const [imageReq, setImageReq] = useState<{ current: ImageAttrs | null; apply: (a: ImageAttrs | null) => void } | null>(null);
+  const layoutSettings = normaliseLayout(book.layout);
+  const textWidth = (TRIM_SIZES[book.trim_size]?.w ?? 6) - layoutSettings.margins.outside - 0.8;
   const router = useRouter();
   const toast = useToast();
   const [list, setList] = useState(initialList);
@@ -303,6 +310,7 @@ export function Editor({ book, chapters: initialList, initialId, canPrint }: { b
               value={content}
               readOnly={!!generating && generating !== 'outline'}
               onChange={(v) => { setContent(v); schedule(); }}
+              onImage={(current, apply) => setImageReq({ current, apply })}
               placeholder={chapter ? 'Start writing…' : 'Loading…'}
               selectionMenu={({ text, close }) =>
                 chapter ? (
@@ -315,6 +323,16 @@ export function Editor({ book, chapters: initialList, initialId, canPrint }: { b
                   />
                 ) : null
               }
+            />
+            <ImageDialog
+              open={!!imageReq}
+              bookId={book.id}
+              current={imageReq?.current ?? null}
+              canGenerate={canGenerateImages}
+              textWidth={textWidth}
+              ink={layoutSettings.ink}
+              onClose={() => setImageReq(null)}
+              onApply={(a) => { imageReq?.apply(a); setImageReq(null); }}
             />
           </div>
         </article>

@@ -2,13 +2,25 @@ import 'server-only';
 import type { Book } from '../api';
 import type { createClient } from '../supabase/server';
 import { toBlocks, type Manuscript } from './manuscript';
+import { loadImages } from '../images';
+import { IMAGE_RE } from '../text';
 
-export async function buildManuscript(supabase: ReturnType<typeof createClient>, book: Book): Promise<Manuscript> {
+/**
+ * Gathers everything an export needs. Pass `images` to load the book's pictures:
+ * greyscale for black-and-white print, and a maximum width to keep files small.
+ */
+export async function buildManuscript(
+  supabase: ReturnType<typeof createClient>,
+  book: Book,
+  opts: { images?: { greyscale?: boolean; maxWidth?: number } } = {},
+): Promise<Manuscript> {
   const [{ data: chapters }, { data: profile }, { data: sub }] = await Promise.all([
     supabase.from('chapters').select('position,title,content').eq('book_id', book.id).order('position'),
     supabase.from('profiles').select('full_name,pen_name,language').eq('id', book.user_id).single(),
     supabase.from('submissions').select('isbn').eq('book_id', book.id).not('isbn', 'is', null).order('created_at', { ascending: false }).limit(1),
   ]);
+  const srcs = opts.images ? (chapters ?? []).flatMap((c) => [...c.content.matchAll(IMAGE_RE)].map((m) => m[2])) : [];
+  const images = srcs.length ? await loadImages(book.user_id, book.id, srcs, opts.images) : undefined;
   const author = book.author_name || profile?.pen_name || profile?.full_name || 'Author';
   return {
     title: book.title,
@@ -21,6 +33,7 @@ export async function buildManuscript(supabase: ReturnType<typeof createClient>,
     blurb: book.blurb,
     authorBio: book.author_bio,
     language: profile?.language || 'en',
+    images,
     chapters: (chapters ?? [])
       .filter((c) => c.content.trim())
       .map((c, i) => ({ number: i + 1, title: c.title || `Chapter ${i + 1}`, blocks: toBlocks(c.content) })),

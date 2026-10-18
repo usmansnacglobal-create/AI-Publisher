@@ -30,7 +30,10 @@ export const GET = handle(async (req: Request, { params }: { params: { id: strin
   const book = await requireBook(supabase, params.id);
   const format = (new URL(req.url).searchParams.get('format') ?? 'pdf') as keyof typeof TYPES;
   if (!(format in TYPES)) throw new HttpError(400, 'Unknown format.');
-  const m = await buildManuscript(supabase, book);
+  // Print uses full-resolution pictures (greyscale for black-and-white books); ebooks and Word use smaller copies.
+  const ink = normaliseLayout(book.layout).ink;
+  const imageOpts = format === 'pdf' ? { greyscale: ink === 'bw', maxWidth: 3000 } : format === 'epub' ? { maxWidth: 1600 } : format === 'docx' ? { maxWidth: 2000 } : undefined;
+  const m = await buildManuscript(supabase, book, { images: imageOpts });
   if (!m.chapters.length) throw new HttpError(400, 'This book has no chapter text yet.');
 
   let body: Buffer | string;
@@ -72,6 +75,10 @@ export const GET = handle(async (req: Request, { params }: { params: { id: strin
               .map((b) =>
                 b.type === 'break'
                   ? '* * *'
+                  : b.type === 'image'
+                    ? md
+                      ? `![${b.caption}](${b.src} "${b.size}")`
+                      : `[Image${b.caption ? `: ${b.caption}` : ''}]`
                   : b.type === 'heading'
                     ? `${md ? '### ' : ''}${b.text}`
                     : b.type === 'list'

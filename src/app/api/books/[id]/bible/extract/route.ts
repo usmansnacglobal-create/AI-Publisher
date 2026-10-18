@@ -1,3 +1,4 @@
+import { forAI } from '@/lib/text';
 import { requireFeature } from '@/lib/tokens';
 import { handle, json, requireUser, requireBook, HttpError } from '@/lib/api';
 import { completeStructured } from '@/lib/ai/claude';
@@ -38,7 +39,7 @@ export const POST = handle(async (_req: Request, { params }: { params: { id: str
   // Very long books are read in the first ~150k words, which covers almost every novel.
   let budget = 600_000;
   const manuscript = text
-    .map((c) => `<chapter n="${c.position}" title="${c.title.replace(/"/g, "'")}">\n${c.content}\n</chapter>`)
+    .map((c) => `<chapter n="${c.position}" title="${c.title.replace(/"/g, "'")}">\n${forAI(c.content)}\n</chapter>`)
     .filter((c) => (budget -= c.length) > 0)
     .join('\n');
 

@@ -1,4 +1,5 @@
 'use client';
+import { importManuscript } from '@/lib/import-client';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -260,11 +261,8 @@ function ImportModal({ open, bookId, hasChapters, onClose }: { open: boolean; bo
     if (!file) return;
     setBusy(true);
     try {
-      const form = new FormData();
-      form.set('file', file);
-      form.set('replace', String(replace));
-      const r = await api<{ chapters: number; words: number }>(`/api/books/${bookId}/import`, { form });
-      toast(`Imported ${r.chapters} chapters (${formatNumber(r.words)} words)`);
+      const r = await importManuscript(bookId, file, replace);
+      toast(`Imported ${r.chapters} chapters (${formatNumber(r.words)} words${r.images ? `, ${r.images} image${r.images === 1 ? '' : 's'}` : ''})`);
       onClose();
       router.refresh();
     } catch (e) {
@@ -275,7 +273,7 @@ function ImportModal({ open, bookId, hasChapters, onClose }: { open: boolean; bo
   return (
     <Modal open={open} onClose={onClose} title="Import a manuscript">
       <div className="space-y-4 text-[14px]">
-        <p className="text-ink-muted">Upload a Word (.docx), PDF, text (.txt) or Markdown (.md) file up to 4 MB. Chapters are split at headings like “Chapter 1” or “Prologue”.</p>
+        <p className="text-ink-muted">Upload a Word (.docx), PDF, text (.txt) or Markdown (.md) file up to 40 MB. Word files keep their formatting and pictures. Chapters are split at headings like “Chapter 1” or “Prologue”.</p>
         <input type="file" accept=".docx,.pdf,.txt,.md" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
         {hasChapters && (
           <label className="flex items-center gap-2">

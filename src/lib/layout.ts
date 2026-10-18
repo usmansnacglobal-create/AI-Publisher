@@ -1,4 +1,5 @@
 // Interior design settings (Layout Typographer). Shared by the editor UI and the PDF/EPUB builders.
+import { TRIM_SIZES, type Ink } from './spine';
 
 export const BODY_FONTS = {
   garamond: { label: 'Garamond', file: 'EBGaramond', css: '"EB Garamond", Garamond, Georgia, serif', note: 'Classic and elegant; the most common novel face' },
@@ -32,6 +33,8 @@ export interface LayoutSettings {
   pageNumbers: keyof typeof PAGE_NUMBERS;
   dropCaps: boolean;
   runningHeads: boolean;
+  /** Interior printing: black and white, standard colour or premium colour. */
+  ink: Ink;
 }
 
 export const DEFAULT_LAYOUT: LayoutSettings = {
@@ -44,19 +47,12 @@ export const DEFAULT_LAYOUT: LayoutSettings = {
   pageNumbers: 'hidden_openers',
   dropCaps: false,
   runningHeads: true,
+  ink: 'bw',
 };
 
 export const SPACING = { tight: 1.25, standard: 1.4, relaxed: 1.6 } as const;
 
-export const TRIM_NOTES: Record<string, string> = {
-  '5x8': 'Compact trade paperback, common for fiction and memoir',
-  '5.25x8': 'Compact trade paperback',
-  '5.5x8.5': 'Standard trade paperback for fiction and memoir',
-  '6x9': 'Most common size for non-fiction and business books',
-  '4.25x7': 'Mass-market paperback / pocket book',
-  '8.5x8.5': 'Square: picture books, cookbooks and children’s books',
-  '8.5x11': 'Letter size: workbooks, manuals and journals',
-};
+export const TRIM_NOTES: Record<string, string> = Object.fromEntries(Object.entries(TRIM_SIZES).map(([k, t]) => [k, t.note]));
 
 export function normaliseLayout(raw: unknown): LayoutSettings {
   const r = (raw ?? {}) as Partial<LayoutSettings>;
@@ -75,6 +71,7 @@ export function normaliseLayout(raw: unknown): LayoutSettings {
     pageNumbers: r.pageNumbers && r.pageNumbers in PAGE_NUMBERS ? r.pageNumbers : 'hidden_openers',
     dropCaps: !!r.dropCaps,
     runningHeads: r.runningHeads !== false,
+    ink: r.ink === 'standard' || r.ink === 'premium' ? r.ink : 'bw',
   };
 }
 

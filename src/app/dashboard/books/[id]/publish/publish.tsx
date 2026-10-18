@@ -6,17 +6,19 @@ import { clsx } from 'clsx';
 import { ArrowLeft, ArrowRight, Check, Circle, Copy, Sparkles, X } from 'lucide-react';
 import type { Book } from '@/lib/api';
 import { api, errorText } from '@/lib/client';
-import { BISAC, EDITIONS, LANGUAGES, PLATFORMS, ebookRoyalty, minPrintPrice, printCost, printRoyalty, type PlatformId } from '@/lib/publishing';
+import { BISAC, EDITIONS, LANGUAGES, PLATFORMS, ebookRoyalty, minPrintPrice, printCost, printRoyalty, type PlatformId, suggestedPrintPrice } from '@/lib/publishing';
 import { VOICES, type VoiceId } from '@/lib/audiobook';
+import { normaliseLayout } from '@/lib/layout';
+import { TRIM_SIZES } from '@/lib/spine';
 import { Badge, Button, Field, PageHeader } from '@/components/ui';
 import { useToast } from '@/components/toast';
 
 type CheckItem = { id: string; label: string; ok: boolean; fix: string; link: string };
 type Submission = {
-  id: string; status: string; platforms: string[]; formats: string[]; price: number; print_price: number | null; isbn: string | null; reviewer_notes: string;
+  id: string; status: string; platforms: string[]; formats: string[]; price: number; print_price: number | null; hardcover_price?: number | null; isbn: string | null; reviewer_notes: string;
   history: { status: string; at: string; note?: string }[]; created_at: string; publish_at: string | null; language: string; edition: string; category: string;
 };
-type Format = 'ebook' | 'paperback' | 'audiobook';
+type Format = 'ebook' | 'paperback' | 'hardcover' | 'audiobook';
 
 const STEPS = ['Checklist', 'Formats', 'Platforms', 'Details', 'Review'] as const;
 const STAGES = [
@@ -28,7 +30,8 @@ const STAGES = [
 ] as const;
 const FORMAT_INFO: Record<Format, { label: string; note: string }> = {
   ebook: { label: 'Ebook (EPUB and Kindle)', note: 'Digital edition for Kindle, Apple Books, Kobo and all e-readers' },
-  paperback: { label: 'Print on demand', note: 'A paperback printed and shipped as each copy is ordered' },
+  paperback: { label: 'Paperback (print on demand)', note: 'A paperback printed and shipped as each copy is ordered' },
+  hardcover: { label: 'Hardcover (print on demand)', note: 'A case-laminate hardcover, printed as each copy is ordered' },
   audiobook: { label: 'Audiobook', note: 'Your AI-narrated audiobook from the Audiobook tab' },
 };
 
@@ -43,6 +46,7 @@ interface Draft {
   edition: string;
   price: number;
   print_price: number;
+  hardcover_price: number;
   when: 'now' | 'later';
   date: string;
 }
@@ -53,6 +57,10 @@ export function Publish({ book, voice }: { book: Book; voice: string | null }) {
   const router = useRouter();
   const toast = useToast();
   const pages = book.page_count ?? 0;
+  const ink = normaliseLayout(book.layout).ink;
+  const spec = { trim: book.trim_size, ink };
+  const hcSpec = { ...spec, binding: 'hardcover' as const };
+  const hardcoverOk = !!TRIM_SIZES[book.trim_size]?.hardcover && ink !== 'standard';
   const initial: Draft = {
     formats: ['ebook', 'paperback'],
     platforms: ['amazon_kdp', 'amazon_kdp_print'],
@@ -63,7 +71,8 @@ export function Publish({ book, voice }: { book: Book; voice: string | null }) {
     language: book.language || 'English',
     edition: book.edition || 'First Edition',
     price: 4.99,
-    print_price: minPrintPrice(pages),
+    print_price: suggestedPrintPrice(pages, spec),
+    hardcover_price: suggestedPrintPrice(pages, hcSpec),
     when: 'now',
     date: '',
   };
@@ -130,6 +139,7 @@ export function Publish({ book, voice }: { book: Book; voice: string | null }) {
           platforms: d.platforms,
           price: d.price,
           print_price: d.formats.includes('paperback') ? d.print_price : undefined,
+          hardcover_price: d.formats.includes('hardcover') ? d.hardcover_price : undefined,
           language: d.language,
           edition: d.edition,
           category: d.category,
@@ -154,13 +164,14 @@ export function Publish({ book, voice }: { book: Book; voice: string | null }) {
   // The description and keywords are written in the Details step, so they don't block the checklist.
   const LATER = ['blurb', 'keywords'];
   const ready = checks?.filter((c) => !LATER.includes(c.id)).every((c) => c.ok);
-  const minPrint = minPrintPrice(pages);
+  const minPrint = minPrintPrice(pages, spec);
+  const minHard = minPrintPrice(pages, hcSpec);
   const descLen = d.blurb.trim().length;
   const stepOk = [
     !!ready,
     d.formats.length > 0,
     d.platforms.length > 0,
-    descLen >= 100 && descLen <= 4000 && !!d.category && d.keywords.length > 0 && d.price >= 0.99 && (!d.formats.includes('paperback') || d.print_price >= minPrint) && (d.when === 'now' || !!d.date),
+    descLen >= 100 && descLen <= 4000 && !!d.category && d.keywords.length > 0 && d.price >= 0.99 && (!d.formats.includes('paperback') || d.print_price >= minPrint) && (!d.formats.includes('hardcover') || d.hardcover_price >= minHard) && (d.when === 'now' || !!d.date),
     true,
   ];
 
@@ -237,12 +248,24 @@ export function Publish({ book, voice }: { book: Book; voice: string | null }) {
                   <h2>Choose your formats</h2>
                   <p className="text-[14px] text-ink-muted">Publish in as many formats as you like.</p>
                   <div className="grid gap-2">
-                    {(Object.keys(FORMAT_INFO) as Format[]).map((f) => (
-                      <label key={f} className={clsx('flex cursor-pointer gap-3 rounded border p-3', d.formats.includes(f) ? 'border-cloth bg-cloth-light/60' : 'border-line')}>
-                        <input type="checkbox" className="mt-1 accent-cloth" checked={d.formats.includes(f)} onChange={() => toggleFormat(f)} />
-                        <span><span className="block font-medium">{FORMAT_INFO[f].label}</span><span className="text-[13px] text-ink-muted">{FORMAT_INFO[f].note}</span></span>
-                      </label>
-                    ))}
+                    {(Object.keys(FORMAT_INFO) as Format[]).map((f) => {
+                      const off = f === 'hardcover' && !hardcoverOk;
+                      return (
+                        <label key={f} className={clsx('flex gap-3 rounded border p-3', off ? 'cursor-not-allowed opacity-60' : 'cursor-pointer', d.formats.includes(f) ? 'border-cloth bg-cloth-light/60' : 'border-line')}>
+                          <input type="checkbox" className="mt-1 accent-cloth" disabled={off} checked={d.formats.includes(f)} onChange={() => toggleFormat(f)} />
+                          <span>
+                            <span className="block font-medium">{FORMAT_INFO[f].label}</span>
+                            <span className="text-[13px] text-ink-muted">
+                              {off
+                                ? ink === 'standard'
+                                  ? 'Hardcovers aren’t available with standard colour. Choose black and white or premium colour on the Layout tab.'
+                                  : `Hardcovers come in 5.5″ × 8.5″, 6″ × 9″, 6.14″ × 9.21″, 7″ × 10″ and 8.25″ × 11″. Change the trim size on the Layout tab to offer one.`
+                                : FORMAT_INFO[f].note}
+                            </span>
+                          </span>
+                        </label>
+                      );
+                    })}
                   </div>
                   {d.formats.includes('audiobook') && (
                     <p className="text-[14px]">
@@ -258,7 +281,7 @@ export function Publish({ book, voice }: { book: Book; voice: string | null }) {
                     <h2>Choose your stores</h2>
                     <Button size="sm" variant="ghost" onClick={() => set('platforms', available)}>Select all available</Button>
                   </div>
-                  {(['ebook', 'paperback', 'audiobook'] as Format[]).filter((f) => d.formats.includes(f)).map((f) => (
+                  {(['ebook', 'paperback', 'hardcover', 'audiobook'] as Format[]).filter((f) => d.formats.includes(f)).map((f) => (
                     <fieldset key={f}>
                       <legend className="label">{FORMAT_INFO[f].label}</legend>
                       <div className="grid gap-1.5 sm:grid-cols-2">
@@ -341,10 +364,20 @@ export function Publish({ book, voice }: { book: Book; voice: string | null }) {
                       <Field
                         label="Paperback price (USD)"
                         htmlFor="pp"
-                        hint={`Min $${minPrint.toFixed(2)}. Printing costs about $${printCost(pages || 200).toFixed(2)}${pages ? '' : ' (estimated)'}; you’d earn about $${Math.max(0, printRoyalty(d.print_price, pages)).toFixed(2)} per Amazon sale.`}
+                        hint={`Min $${minPrint.toFixed(2)}. Printing costs about $${printCost(pages, spec).toFixed(2)}${pages ? '' : ' (estimated)'}; you’d earn about $${Math.max(0, printRoyalty(d.print_price, pages, spec)).toFixed(2)} per Amazon sale (${d.print_price >= 9.99 ? '60%' : '50%'} royalty${d.print_price >= 9.99 ? '' : '; $9.99 and up earns 60%'}).`}
                         error={d.print_price < minPrint ? `Set at least $${minPrint.toFixed(2)} to cover printing.` : undefined}
                       >
                         <input id="pp" type="number" min={minPrint} step={0.01} className="field" value={d.print_price} onChange={(e) => set('print_price', Number(e.target.value))} />
+                      </Field>
+                    )}
+                    {d.formats.includes('hardcover') && (
+                      <Field
+                        label="Hardcover price (USD)"
+                        htmlFor="hp"
+                        hint={`Min $${minHard.toFixed(2)}. Printing costs about $${printCost(pages, hcSpec).toFixed(2)}${pages ? '' : ' (estimated)'}; you’d earn about $${Math.max(0, printRoyalty(d.hardcover_price, pages, hcSpec)).toFixed(2)} per Amazon sale.`}
+                        error={d.hardcover_price < minHard ? `Set at least $${minHard.toFixed(2)} to cover printing.` : undefined}
+                      >
+                        <input id="hp" type="number" min={minHard} step={0.01} className="field" value={d.hardcover_price} onChange={(e) => set('hardcover_price', Number(e.target.value))} />
                       </Field>
                     )}
                   </div>
@@ -364,7 +397,7 @@ export function Publish({ book, voice }: { book: Book; voice: string | null }) {
                   <dl className="grid gap-x-6 gap-y-2 text-[14px] sm:grid-cols-[160px_1fr]">
                     <dt className="text-ink-muted">Formats</dt><dd>{d.formats.map((f) => FORMAT_INFO[f].label).join(', ')}</dd>
                     <dt className="text-ink-muted">Stores</dt><dd>{d.platforms.map((p) => PLATFORMS[p].label.split(' (')[0]).join(', ')}</dd>
-                    <dt className="text-ink-muted">Price</dt><dd>Ebook ${d.price.toFixed(2)}{d.formats.includes('paperback') && ` · Paperback $${d.print_price.toFixed(2)}`}</dd>
+                    <dt className="text-ink-muted">Price</dt><dd>Ebook ${d.price.toFixed(2)}{d.formats.includes('paperback') && ` · Paperback $${d.print_price.toFixed(2)}`}{d.formats.includes('hardcover') && ` · Hardcover $${d.hardcover_price.toFixed(2)}`}</dd>
                     <dt className="text-ink-muted">Category</dt><dd>{d.category}</dd>
                     <dt className="text-ink-muted">Keywords</dt><dd>{d.keywords.join(', ')}</dd>
                     <dt className="text-ink-muted">Language and edition</dt><dd>{d.language}, {d.edition}</dd>

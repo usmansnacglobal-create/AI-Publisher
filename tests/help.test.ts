@@ -89,6 +89,13 @@ const CASES: [string, string][] = [
   ['how do i cancle my plan', 'cancel-plan'],
   ['proofraed my book', 'proofread'],
   ['audibook', 'audiobook'],
+  ['how do i add a picture to my chapter', 'images'],
+  ['can i insert photos', 'images'],
+  ['can i print my book in colour', 'colour-printing'],
+  ['why are my pictures grey', 'colour-printing'],
+  ['can i make a hardcover version', 'hardcover'],
+  ['what sizes can my book be', 'trim-sizes'],
+  ['my book is too long for amazon', 'trim-sizes'],
 ];
 
 describe('help content', () => {

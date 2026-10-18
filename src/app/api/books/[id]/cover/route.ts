@@ -1,7 +1,7 @@
 import { handle, json, requireUser, requireBook } from '@/lib/api';
 import { DEFAULT_BRIEF, DEFAULT_DESIGN } from '@/lib/cover';
-import { estimatePages, spineTextAllowed, wrapSize } from '@/lib/spine';
-import { TRIM_SIZES } from '@/lib/spine';
+import { coverGeometry, estimatePages, pageCountIssues, spineTextAllowed, TRIM_SIZES } from '@/lib/spine';
+import { normaliseLayout } from '@/lib/layout';
 import { getPlan } from '@/lib/plans';
 
 type Ctx = { params: { id: string } };
@@ -21,6 +21,7 @@ export const GET = handle(async (_req: Request, { params }: Ctx) => {
   const pages = brief.pageCountOverride ?? book.page_count ?? estimatePages(Math.max(words, book.target_words), book.trim_size, book.target_chapters);
 
   const design = { ...DEFAULT_DESIGN, ...(cover?.design ?? {}) };
+  const ink = normaliseLayout(book.layout).ink;
   const paths: string[] = [
     ...((cover?.concepts ?? []) as { path: string }[]).map((c) => c.path),
     ...brief.referencePaths,
@@ -32,6 +33,7 @@ export const GET = handle(async (_req: Request, { params }: Ctx) => {
     design.authorPhotoPath,
     design.logoPath,
     ...(versions ?? []).map((v) => v.selected_path),
+    `${book.user_id}/${book.id}/cover-hardcover.pdf`,
   ].filter(Boolean) as string[];
   const urls: Record<string, string> = {};
   if (paths.length) {
@@ -55,7 +57,17 @@ export const GET = handle(async (_req: Request, { params }: Ctx) => {
     },
     versions: versions ?? [],
     urls,
-    geometry: { pages, pagesSource, words, ...wrapSize(book.trim_size, pages, book.paper), spineText: spineTextAllowed(pages) },
+    geometry: {
+      pages,
+      pagesSource,
+      words,
+      ink,
+      ...coverGeometry(book.trim_size, pages, book.paper, ink, 'paperback'),
+      spineText: spineTextAllowed(pages),
+      issues: pageCountIssues(pages, book.trim_size, ink, book.paper),
+      hardcover: { ...coverGeometry(book.trim_size, pages, book.paper, ink, 'hardcover'), issues: pageCountIssues(pages, book.trim_size, ink, book.paper, 'hardcover') },
+    },
+    hardcoverUrl: urls[`${book.user_id}/${book.id}/cover-hardcover.pdf`] ?? null,
     trims: TRIM_SIZES,
   });
 });

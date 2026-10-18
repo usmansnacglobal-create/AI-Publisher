@@ -1,3 +1,4 @@
+import { forAI } from '@/lib/text';
 import { z } from 'zod';
 import { handle, json, requireUser, HttpError } from '@/lib/api';
 import { loadChapter, loadContext } from '@/lib/chapters';
@@ -49,7 +50,7 @@ export const POST = handle(async (req: Request, { params }: { params: { id: stri
     prompt: `${bookBrief(book)}${bibleBlock(bible)}
 
 <chapter title="${chapter.title.replace(/"/g, "'")}">
-${chapter.content}
+${forAI(chapter.content)}
 </chapter>
 ${body.selection ? `\n<selected_passage>\n${body.selection}\n</selected_passage>\n` : ''}
 Task: ${instruction}`,

@@ -6,7 +6,6 @@ import { api, errorText } from '@/lib/client';
 import { createClient } from '@/lib/supabase/client';
 import { COVER_STYLES, MOODS, PALETTES, TEMPLATES, TITLE_FONTS, type CoverBrief, type CoverDesign } from '@/lib/cover';
 import { drawFront, drawSocial, drawTemplate, drawWrap, loadFont, loadImage, type WrapAssets } from '@/lib/canvas';
-import { BLEED } from '@/lib/spine';
 import { Badge, Button, Field, PageHeader } from '@/components/ui';
 import { useToast } from '@/components/toast';
 
@@ -22,9 +21,15 @@ interface Data {
   };
   versions: Version[];
   urls: Record<string, string>;
-  geometry: { pages: number; pagesSource: 'yours' | 'measured' | 'estimated'; words: number; width: number; height: number; spine: number; trimW: number; trimH: number; spineText: boolean };
-  trims: Record<string, { w: number; h: number; label: string }>;
+  geometry: Geo & {
+    pages: number; pagesSource: 'yours' | 'measured' | 'estimated'; words: number; spineText: boolean; ink: 'bw' | 'standard' | 'premium';
+    issues: string[]; hardcover: Geo & { issues: string[] };
+  };
+  hardcoverUrl: string | null;
+  trims: Record<string, { w: number; h: number; label: string; hardcover?: boolean; custom?: boolean }>;
 }
+
+type Geo = { trimW: number; trimH: number; spine: number; bleed: number; safe: number; width: number; height: number };
 
 const STEPS = ['Brief', 'Create', 'Design', 'Finalize and export'] as const;
 
@@ -211,6 +216,15 @@ function BriefStep({ data, brief, setBrief, book, setBook, busy, onNext, bookId 
                 <option value="white">White</option><option value="cream">Cream</option>
               </select>
             </Field>
+            <label className="col-span-2 flex items-start gap-2.5 text-[14px]">
+              <input type="checkbox" className="mt-1 accent-cloth disabled:opacity-50" checked={!!brief.hardcover && !!data.trims[book.trim_size]?.hardcover} disabled={!data.trims[book.trim_size]?.hardcover} onChange={(e) => set('hardcover', e.target.checked)} />
+              <span>
+                <span className="font-medium">Also make a hardcover cover</span>
+                <span className="block text-[12px] text-ink-muted">
+                  {data.trims[book.trim_size]?.hardcover ? 'A case-laminate cover that wraps around the boards. Same design, sized for hardcover.' : 'Amazon prints hardcovers in 5.5″ × 8.5″, 6″ × 9″, 6.14″ × 9.21″, 7″ × 10″ and 8.25″ × 11″.'}
+                </span>
+              </span>
+            </label>
             <div className="col-span-2 rounded-md bg-ground px-3 py-2 text-[13px] text-ink-soft">
               {geo.pages} pages ({geo.pagesSource === 'measured' ? 'measured from your print interior' : geo.pagesSource === 'yours' ? 'your number' : `estimated from ${geo.words.toLocaleString('en-GB')} words; create the print PDF on the Layout tab for the exact count`}) · spine {geo.spine.toFixed(3)}″
               {!geo.spineText && ' · under 79 pages, so no text on the spine'}
@@ -334,11 +348,14 @@ function CreateStep({ data, bookId, busy, onGenerate, onSelect, onChanged, onNex
     setWorking(t.id);
     try {
       const c = document.createElement('canvas');
-      c.width = 1024;
-      c.height = 1536;
-      drawTemplate(c.getContext('2d')!, t.kind, t.colors);
-      const blob = await new Promise<Blob>((r) => c.toBlob((b) => r(b!), 'image/png'));
-      await addConcept(blob, 'template', t.name);
+      // Drawn at print resolution (300 dpi on the largest trim sizes), so templates never look soft in print.
+      c.width = 2700;
+      c.height = 4050;
+      const ctx = c.getContext('2d')!;
+      ctx.scale(c.width / 1024, c.height / 1536);
+      drawTemplate(ctx, t.kind, t.colors);
+      const blob = await new Promise<Blob>((r) => c.toBlob((b) => r(b!), 'image/jpeg', 0.92));
+      await addConcept(blob, 'template', t.name, 'jpg', 'image/jpeg');
       toast(`“${t.name}” added. Add your lettering in the Design step.`);
     } catch (e) {
       toast(errorText(e), 'error');
@@ -554,11 +571,13 @@ function DesignStep({ data, bookId, design, setDesign, brief, book, imageUrl, bu
   const assets = useAssets(data, design);
   const frontRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLCanvasElement>(null);
+  const hcRef = useRef<HTMLCanvasElement>(null);
   const [panel, setPanel] = useState<'front' | 'spine' | 'back'>('front');
   const [overflow, setOverflow] = useState(false);
   const [uploading, setUploading] = useState('');
   const set = <K extends keyof CoverDesign>(k: K, v: CoverDesign[K]) => setDesign({ ...design, [k]: v });
   const paperback = brief.format === 'paperback';
+  const hardcover = paperback && !!brief.hardcover && !!data.trims[data.book.trim_size]?.hardcover;
 
   useEffect(() => {
     let cancelled = false;
@@ -573,19 +592,27 @@ function DesignStep({ data, bookId, design, setDesign, brief, book, imageUrl, bu
         drawFront(ctx, img, design, t, 0, 0, c.width, c.height);
       }
       const w = wrapRef.current;
+      const dpi = 60;
       if (w && paperback) {
         const g = data.geometry;
-        const dpi = 60;
-        w.width = Math.round((g.trimW * 2 + g.spine + BLEED * 2) * dpi);
-        w.height = Math.round((g.trimH + BLEED * 2) * dpi);
-        const r = drawWrap(w.getContext('2d')!, img, design, { ...t, tagline: brief.tagline }, backText(brief, book), { ...g, bleed: BLEED }, dpi, assets);
+        w.width = Math.round(g.width * dpi);
+        w.height = Math.round(g.height * dpi);
+        const r = drawWrap(w.getContext('2d')!, img, design, { ...t, tagline: brief.tagline }, backText(brief, book), g, dpi, assets);
         setOverflow(r.overflow);
+      }
+      const h = hcRef.current;
+      if (h && hardcover) {
+        const g = data.geometry.hardcover;
+        h.width = Math.round(g.width * dpi);
+        h.height = Math.round(g.height * dpi);
+        const r = drawWrap(h.getContext('2d')!, img, design, { ...t, tagline: brief.tagline }, backText(brief, book), { ...g, spineText: data.geometry.pages >= 75 }, dpi, assets);
+        if (r.overflow) setOverflow(true);
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [img, design, data, brief, book, assets, paperback]);
+  }, [img, design, data, brief, book, assets, paperback, hardcover]);
 
   async function uploadAsset(file: File | undefined, key: 'backImagePath' | 'authorPhotoPath' | 'logoPath') {
     if (!file) return;
@@ -712,6 +739,13 @@ function DesignStep({ data, bookId, design, setDesign, brief, book, imageUrl, bu
             <p className="mt-2 text-[13px] text-ink-muted">The white box on the back is where the printer adds the ISBN barcode. Edges extend 0.125″ past the trim for bleed.</p>
           </div>
         )}
+        {hardcover && (
+          <div>
+            <h3 className="mb-2">Full hardcover cover</h3>
+            <canvas ref={hcRef} className="w-full rounded-sm shadow" aria-label="Hardcover preview: back, spine and front" />
+            <p className="mt-2 text-[13px] text-ink-muted">The outer 0.591″ on every side wraps around the boards, and the strips beside the spine are the hinges, so lettering is kept well inside them.</p>
+          </div>
+        )}
         <Button onClick={onNext} loading={busy === 'save'}>Save design and continue</Button>
       </div>
     </div>
@@ -729,19 +763,30 @@ function ExportStep({ data, design, brief, book, imageUrl, bookId, onDone, onOpe
   const [busy, setBusy] = useState('');
   const g = data.geometry;
   const paperback = brief.format === 'paperback';
+  const hardcover = paperback && !!brief.hardcover && !!data.trims[data.book.trim_size]?.hardcover;
 
   const checks: Check[] = [];
   if (img) {
-    const dpi = Math.round(img.width / (g.trimW + BLEED));
-    checks.push({
-      label: 'Artwork resolution',
-      status: dpi >= 250 ? 'ok' : dpi >= 150 ? 'warn' : 'fail',
-      note: dpi >= 250 ? `${dpi} dpi at print size: sharp.` : dpi >= 150 ? `${dpi} dpi at print size: fine for ebooks, may look slightly soft in print.` : `${dpi} dpi at print size: too low for print. Use a larger image.`,
-    });
+    if (paperback) {
+      const dpi = Math.round(img.width / (g.trimW + g.bleed));
+      checks.push({
+        label: 'Artwork resolution',
+        status: dpi >= 250 ? 'ok' : dpi >= 100 ? 'warn' : 'fail',
+        note: dpi >= 250 ? `${dpi} dpi at print size: sharp.` : dpi >= 150 ? `${dpi} dpi at print size: fine for ebooks, may look slightly soft in print.` : dpi >= 100 ? `${dpi} dpi at print size: will look soft in print. A larger image is strongly recommended.` : `${dpi} dpi at print size: too low for print. Use a larger image.`,
+      });
+    } else {
+      checks.push({
+        label: 'Artwork resolution',
+        status: img.width >= 1400 ? 'ok' : img.width >= 800 ? 'warn' : 'fail',
+        note: img.width >= 1400 ? `${img.width} px wide: sharp for ebooks.` : img.width >= 800 ? `${img.width} px wide: usable, but stores recommend 1,600 px.` : `${img.width} px wide: too small for an ebook cover. Use a larger image.`,
+      });
+    }
   } else checks.push({ label: 'Artwork', status: 'fail', note: 'Choose artwork in the Create step.' });
   if (paperback) {
     checks.push({ label: 'Page count', status: g.pagesSource === 'measured' ? 'ok' : 'warn', note: g.pagesSource === 'measured' ? `${g.pages} pages, measured from your print interior.` : `${g.pages} pages, ${g.pagesSource === 'yours' ? 'entered by you' : 'estimated'}. Create the print PDF on the Layout tab for an exact spine.` });
     checks.push({ label: 'Spine text', status: 'ok', note: g.spineText ? 'Title and author on the spine.' : 'Under 79 pages: colour only, as printers require.' });
+    checks.push({ label: 'Amazon page limits', status: g.issues.length ? 'warn' : 'ok', note: g.issues[0] ?? 'Within Amazon’s limits for this size and paper.' });
+    if (hardcover) checks.push({ label: 'Hardcover', status: g.hardcover.issues.length ? 'warn' : 'ok', note: g.hardcover.issues[0] ?? `Board cover ${g.hardcover.width.toFixed(3)}″ × ${g.hardcover.height.toFixed(3)}″ with a ${g.hardcover.spine.toFixed(3)}″ spine.` });
     checks.push({ label: 'Back-cover blurb', status: book.blurb.trim() ? 'ok' : 'warn', note: book.blurb.trim() ? 'Present.' : 'No description on the back cover yet. Add one in the Brief step.' });
     checks.push({ label: 'Barcode area', status: 'ok', note: 'Kept clear for the ISBN barcode.' });
   }
@@ -776,13 +821,25 @@ function ExportStep({ data, design, brief, book, imageUrl, bookId, onDone, onOpe
       if (paperback) {
         const dpi = 300;
         const wc = document.createElement('canvas');
-        wrapInches = { width: g.trimW * 2 + g.spine + BLEED * 2, height: g.trimH + BLEED * 2 };
+        wrapInches = { width: g.width, height: g.height };
         wc.width = Math.round(wrapInches.width * dpi);
         wc.height = Math.round(wrapInches.height * dpi);
-        drawWrap(wc.getContext('2d')!, img, design, { ...t, tagline: brief.tagline }, backText(brief, book), { ...g, bleed: BLEED }, dpi, assets);
+        drawWrap(wc.getContext('2d')!, img, design, { ...t, tagline: brief.tagline }, backText(brief, book), g, dpi, assets);
         wrapPath = await uploadToCovers(bookId, await toBlob(wc, 'image/jpeg', 0.95), 'cover-wrap.jpg', 'image/jpeg');
       }
-      await api(`/api/books/${bookId}/cover/final`, { body: { frontPath, wrapPath, wrapInches, socialPath } });
+      let hardcoverPath: string | undefined;
+      let hardcoverInches: { width: number; height: number } | undefined;
+      if (hardcover) {
+        const dpi = 300;
+        const h = g.hardcover;
+        const hc = document.createElement('canvas');
+        hardcoverInches = { width: h.width, height: h.height };
+        hc.width = Math.round(h.width * dpi);
+        hc.height = Math.round(h.height * dpi);
+        drawWrap(hc.getContext('2d')!, img, design, { ...t, tagline: brief.tagline }, backText(brief, book), { ...h, spineText: data.geometry.pages >= 75 }, dpi, assets);
+        hardcoverPath = await uploadToCovers(bookId, await toBlob(hc, 'image/jpeg', 0.95), 'cover-hardcover.jpg', 'image/jpeg');
+      }
+      await api(`/api/books/${bookId}/cover/final`, { body: { frontPath, wrapPath, wrapInches, socialPath, hardcoverPath, hardcoverInches } });
       await onDone();
       toast('Cover files exported');
     } catch (e) {
@@ -840,7 +897,7 @@ function ExportStep({ data, design, brief, book, imageUrl, bookId, onDone, onOpe
         <section className="space-y-3">
           <h3>Export files</h3>
           <p className="text-[14px] text-ink-muted">
-            Creates your ebook cover (1600 × 2560, JPEG and PNG), a social media image (1200 × 630){paperback && `, and a print-ready full cover PDF: ${(g.trimW * 2 + g.spine + BLEED * 2).toFixed(3)}″ × ${(g.trimH + BLEED * 2).toFixed(3)}″ at 300 dpi with a ${g.spine.toFixed(3)}″ spine`}.
+            Creates your ebook cover (1600 × 2560, JPEG and PNG), a social media image (1200 × 630){paperback && `, a print-ready paperback cover PDF: ${g.width.toFixed(3)}″ × ${g.height.toFixed(3)}″ at 300 dpi with a ${g.spine.toFixed(3)}″ spine`}{hardcover && `, and a hardcover cover PDF: ${g.hardcover.width.toFixed(3)}″ × ${g.hardcover.height.toFixed(3)}″`}.
           </p>
           <Button onClick={exportAll} loading={busy === 'export'} disabled={blocking}>{frontUrl ? 'Export again' : 'Export files'}</Button>
           {frontUrl && (
@@ -848,6 +905,7 @@ function ExportStep({ data, design, brief, book, imageUrl, bookId, onDone, onOpe
               {ebookUrl && <a href={ebookUrl} download="ebook-cover.jpg" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded border border-line-strong bg-sheet px-3 py-2 text-[14px]"><Download className="h-4 w-4" />Ebook cover (JPEG)</a>}
               <a href={frontUrl} download="cover-front.png" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded border border-line-strong bg-sheet px-3 py-2 text-[14px]"><Download className="h-4 w-4" />Front cover (PNG)</a>
               {wrapUrl && <a href={wrapUrl} download="cover-paperback.pdf" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded border border-line-strong bg-sheet px-3 py-2 text-[14px]"><Download className="h-4 w-4" />Print cover (PDF)</a>}
+              {hardcover && data.hardcoverUrl && <a href={data.hardcoverUrl} download="cover-hardcover.pdf" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded border border-line-strong bg-sheet px-3 py-2 text-[14px]"><Download className="h-4 w-4" />Hardcover cover (PDF)</a>}
               {socialUrl && <a href={socialUrl} download="cover-social.png" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded border border-line-strong bg-sheet px-3 py-2 text-[14px]"><Download className="h-4 w-4" />Social image</a>}
             </div>
           )}

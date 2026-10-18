@@ -139,7 +139,7 @@ Before you create the book you'll see an estimate of the AI tokens it will use.
     title: 'Importing a manuscript you’ve already written',
     summary: 'Upload a Word, PDF, text or Markdown file and it’s split into chapters.',
     answer:
-      'Choose **My books → New book → Upload a manuscript**, or use **Import manuscript** on a book’s Overview tab. Word (.docx), PDF, text (.txt) and Markdown (.md) files up to 4 MB work. Chapters are split at headings like “Chapter 1” or “Prologue”.',
+      'Choose **My books → New book → Upload a manuscript**, or use **Import manuscript** on a book’s Overview tab. Word (.docx), PDF, text (.txt) and Markdown (.md) files up to 40 MB work, and Word files keep their pictures. Chapters are split at headings like “Chapter 1” or “Prologue”.',
     questions: ['how do i upload my manuscript', 'import my book', 'upload a word document', 'can i upload a pdf', 'can i import a pdf manuscript', 'which file types can i import', 'import docx', 'i already wrote my book', 'bring my existing book in', 'upload file'],
     keywords: ['import', 'upload', 'manuscript', 'docx', 'word', 'pdf', 'txt', 'markdown', 'file', 'existing'],
     action: { label: 'Upload a manuscript', href: '/dashboard/books/new' },
@@ -155,9 +155,9 @@ Before you create the book you'll see an estimate of the AI tokens it will use.
 2. Choose the file. Tick **Replace the existing chapters** if you want to start over; otherwise the new chapters are added at the end.
 
 ### What works best
-- Word (.docx), PDF, text (.txt) or Markdown (.md), up to 4 MB.
+- Word (.docx), PDF, text (.txt) or Markdown (.md), up to 40 MB.
 - Put each chapter under a heading such as "Chapter 1", "Chapter One", "Prologue" or "Epilogue". That's where the book is split.
-- Word files keep bold, italic, headings, lists and quotes. PDFs bring in the text only.
+- Word files keep bold, italic, headings, lists, quotes and pictures (with their captions). PDFs bring in the text only.
 
 > Scanned PDFs (photos of pages) have no text to import. Use the original Word file instead.`,
   },
@@ -213,7 +213,7 @@ Prices are in US dollars. Payment is monthly through PayPal (PayPal account or c
     pages: ['write'],
     body: `1. Open your book and click **Write**.
 2. Pick a chapter on the left, or click **Add chapter**.
-3. Type on the page. The toolbar above the text gives you bold, italic, underline, three heading sizes, normal text, bullet and numbered lists, block quotes, links, a scene break (shown as three centred stars), undo and redo.
+3. Type on the page. The toolbar above the text gives you bold, italic, underline, three heading sizes, normal text, bullet and numbered lists, block quotes, links, a scene break (shown as three centred stars), **Add image**, undo and redo.
 
 ### Saving
 Your work saves automatically as you type. Above the page you'll see **All changes saved**, **Unsaved changes** or, if your connection drops, **Couldn't save. Retrying when you type.**
@@ -500,5 +500,36 @@ The setting is per chapter, so you can turn it on where you want it.`,
     body: `When our team reviews your book, they may leave a note on a particular chapter. It appears in a box above the chapter text, and you get a notification.
 
 Make the change they describe. If your submission was marked **Changes requested**, submit the book again from the **Publish** tab when you're done.`,
+  },
+  {
+    slug: 'images',
+    category: 'write',
+    title: 'Adding photos and pictures to your book',
+    summary: 'Upload images or create them with AI, with captions and sizes.',
+    answer:
+      'In the editor, put the cursor where the picture should go and click **Add image** in the toolbar. Upload a JPG, PNG or WebP, or choose **Create with AI** (Pro and Agency). Add a caption and pick small, medium or full width. Double-click an image to change or remove it. The tool tells you if a picture is too low-resolution to print well.',
+    questions: ['how do i add a picture', 'add an image', 'insert a photo', 'can i add photos to my book', 'add illustrations', 'ai illustration', 'generate an image for my chapter', 'add a caption', 'resize an image', 'remove an image', 'my image is blurry in print'],
+    keywords: ['image', 'images', 'picture', 'pictures', 'photo', 'photos', 'illustration', 'illustrations', 'diagram', 'caption', 'insert', 'resolution', 'dpi', 'blurry'],
+    related: ['colour-printing', 'downloads', 'import-manuscript'],
+    pages: ['write', 'format'],
+    body: `### Add an image
+1. In **Write**, click where the picture should go.
+2. Click **Add image** in the toolbar.
+3. **Upload** a JPG, PNG or WebP (up to 20 MB), or open **Create with AI**, describe the picture, pick a style (photo, illustration, watercolour, line drawing or diagram) and a shape, and click **Create image**.
+4. Add a **caption** (printed under the picture and read out by screen readers) and choose the **size**: small (half the text width), medium (three quarters) or full width.
+5. Click **Insert image**.
+
+### Change or remove an image
+Double-click it, or select it and click **Edit image** in the toolbar. You can replace the picture, change the caption or size, or click **Remove image**.
+
+### Print quality
+Printed pictures need about 300 dots per inch. The image window shows how sharp each picture will be at the size you chose, and the **Layout** tab lists every image with a print-quality check. If one is too low, use a larger original or a smaller size. As a guide, a full-width picture in a 6″ × 9″ book needs to be about 1,400 pixels wide or more.
+
+### Good to know
+- Pictures in Word files you import come in automatically, with their captions.
+- AI pictures use AI tokens (like cover artwork) and contain no words, so captions stay sharp.
+- In a black-and-white book, pictures print in greyscale, and the editor previews them that way. For colour, change the printing on the Layout tab.
+- When AI rewrites or edits a chapter, your pictures stay in place.
+- Only use pictures you own or have permission to use.`,
   },
 ];

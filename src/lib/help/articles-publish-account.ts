@@ -59,7 +59,7 @@ The list changes with the formats you choose in step 2.`,
     title: 'Formats and stores',
     summary: 'Ebook, paperback and audiobook, and the 12 stores you can choose.',
     answer:
-      'Ebook stores: Amazon Kindle, Apple Books, Barnes & Noble, Kobo, Google Play Books, Draft2Digital and Smashwords. Paperback: Amazon KDP Print and IngramSpark (bookshops and libraries). Audiobook: Audible / ACX, Spotify and Apple Books audiobooks.',
+      'Ebook stores: Amazon Kindle, Apple Books, Barnes & Noble, Kobo, Google Play Books, Draft2Digital and Smashwords. Paperback: Amazon KDP Print and IngramSpark (bookshops and libraries). Hardcover: Amazon KDP Hardcover and IngramSpark. Audiobook: Audible / ACX, Spotify and Apple Books audiobooks.',
     questions: ['put my book on kobo', 'can i publish on kobo', 'which stores can i publish to', 'can i publish on apple books', 'can i sell a paperback', 'print on demand', 'ingramspark', 'barnes and noble', 'what formats can i publish', 'kobo', 'google play'],
     keywords: ['stores', 'platforms', 'formats', 'ebook', 'paperback', 'print', 'demand', 'audiobook', 'amazon', 'kindle', 'apple', 'barnes', 'noble', 'kobo', 'google', 'draft2digital', 'smashwords', 'ingramspark', 'audible', 'acx', 'spotify'],
     related: ['publish-details', 'audiobook-stores'],
@@ -69,6 +69,9 @@ Amazon Kindle, Apple Books, Barnes & Noble, Kobo, Google Play Books, Draft2Digit
 
 ### Paperback (print on demand)
 A paperback printed and shipped as each copy is ordered: Amazon KDP Print and IngramSpark (bookshops and libraries).
+
+### Hardcover (print on demand)
+A case-laminate hardcover: Amazon KDP Hardcover and IngramSpark. Available in 5.5″ × 8.5″, 6″ × 9″, 6.14″ × 9.21″, 7″ × 10″ and 8.25″ × 11″, with 75 to 550 pages, in black and white or premium colour. See *Hardcover books*.
 
 ### Audiobook
 Your AI-narrated audiobook from the Audiobook tab: Audible / ACX, Spotify and Apple Books audiobooks.
@@ -81,7 +84,7 @@ Choose as many formats and stores as you like.`,
     title: 'Description, keywords, category and prices',
     summary: 'Step 4 of publishing, and how royalties are estimated.',
     answer:
-      'In step 4, click **Write description and keywords with AI** or write your own: a description of 100 to 4,000 characters, up to 7 keywords and a category. The ebook price must be at least $0.99; between $2.99 and $9.99 Kindle pays about 70%, otherwise about 35%. The paperback price must cover printing; the page shows the minimum and your estimated earnings.',
+      'In step 4, click **Write description and keywords with AI** or write your own: a description of 100 to 4,000 characters, up to 7 keywords and a category. The ebook price must be at least $0.99; between $2.99 and $9.99 Kindle pays about 70%, otherwise about 35%. Paperbacks and hardcovers earn about 60% minus printing at $9.99 and above, and 50% below. The page suggests a price that earns about $3 a copy and shows the minimum.',
     questions: ['how much should i charge', 'set the price', 'book price', 'royalties', 'how much will i earn', 'keywords for amazon', 'book description', 'choose a category', 'minimum paperback price', 'schedule publishing date'],
     keywords: ['price', 'pricing', 'royalty', 'royalties', 'earn', 'earnings', 'keywords', 'description', 'category', 'bisac', 'language', 'edition', 'schedule', 'date', 'minimum'],
     related: ['publish-overview', 'royalties-payouts'],
@@ -94,7 +97,7 @@ Choose as many formats and stores as you like.`,
 
 ### Prices (US dollars)
 - **Ebook**: at least $0.99. Kindle pays about **70%** for prices from $2.99 to $9.99 and about **35%** otherwise. The page shows what you'd earn per Kindle sale.
-- **Paperback**: must cover the printing cost, which depends on page count. The page shows the minimum price and what you'd earn per Amazon sale.
+- **Paperback and hardcover**: Amazon pays about **60%** of the price at $9.99 and above, and **50%** below, minus the printing cost. Printing depends on page count, trim size, colour and binding. The price must at least cover printing; the page suggests a starting price that earns about $3 a copy, shows the minimum, and what you'd earn per sale.
 
 These are estimates based on Amazon's US rates. Store fees and taxes can change the actual figure.
 
@@ -605,15 +608,15 @@ If you see **Couldn't save. Retrying when you type.**, your connection dropped. 
     title: 'My manuscript didn’t import properly',
     summary: 'Chapters not split, text missing or file rejected.',
     answer:
-      'Chapters are split at headings like “Chapter 1”, “Chapter One”, “Prologue” or “Epilogue”, so add those to your file if everything arrived as one chapter. Scanned PDFs have no text to import; use the Word file. Files must be .docx, .pdf, .txt or .md and under 4 MB.',
+      'Chapters are split at headings like “Chapter 1”, “Chapter One”, “Prologue” or “Epilogue”, so add those to your file if everything arrived as one chapter. Scanned PDFs have no text to import; use the Word file. Files must be .docx, .pdf, .txt or .md and under 40 MB.',
     questions: ['import did not work', 'all my text is in one chapter', 'chapters not split', 'pdf import empty', 'file too big', 'import failed', 'formatting lost on import'],
     keywords: ['import', 'failed', 'chapters', 'split', 'one', 'empty', 'scanned', 'pdf', 'size', 'big', 'formatting'],
     related: ['import-manuscript', 'chapters-manage'],
     pages: ['new-book', 'overview'],
     body: `- **Everything is in one chapter**: put a heading such as "Chapter 1", "Chapter One", "Prologue" or "Epilogue" at the start of each chapter in your file and import again (tick **Replace the existing chapters**). Or use **Split chapter** in the editor.
 - **A PDF imported empty**: it's probably scanned images of pages. Import the original Word document instead.
-- **The file was rejected**: use .docx, .pdf, .txt or .md, under 4 MB. Split a very long book into two files and import the second without replacing.
-- **Formatting is missing**: Word files keep bold, italic, headings, lists and quotes; PDFs bring in plain text only.`,
+- **The file was rejected**: use .docx, .pdf, .txt or .md, under 40 MB. If a Word file with many large photos is too big, use Word's Compress Pictures option first. Split a very long book into two files and import the second without replacing.
+- **Formatting or pictures are missing**: Word files keep bold, italic, headings, lists, quotes and pictures; PDFs bring in plain text only, so add pictures afterwards with **Add image** in the editor.`,
   },
   {
     slug: 'locked-feature',

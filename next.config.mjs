@@ -38,7 +38,7 @@ const securityHeaders = [
 const nextConfig = {
   reactStrictMode: true,
   experimental: {
-    serverComponentsExternalPackages: ['pdfkit', 'mammoth', 'unpdf'],
+    serverComponentsExternalPackages: ['pdfkit', 'mammoth', 'unpdf', 'sharp', 'turndown'],
     // The print PDF embeds the book font, so ship the font files with that route.
     outputFileTracingIncludes: {
       '/api/books/[id]/export': ['./src/assets/fonts/**'],

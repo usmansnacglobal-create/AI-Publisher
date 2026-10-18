@@ -67,6 +67,8 @@ export const PATCH = handle(async (req: Request, { params }: Ctx) => {
   }
   if ('layout' in updates) {
     updates.layout = normaliseLayout(updates.layout);
+    // Colour interiors are printed on white paper only.
+    if ((updates.layout as { ink: string }).ink !== 'bw') updates.paper = 'white';
     updates.page_count = null;
     updates.layout_approved_at = null;
   }

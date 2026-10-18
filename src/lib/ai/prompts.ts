@@ -1,3 +1,4 @@
+import { forAI } from '../text';
 import type { Book, Chapter, ChapterSettings } from '../api';
 
 export interface BibleEntry {
@@ -76,7 +77,7 @@ export function chapterPrompt(book: Book, chapter: Chapter, all: Chapter[], bibl
     .map((c) => `${c.position}. ${c.title}${c.synopsis ? ` — ${c.synopsis}` : ''}`)
     .join('\n');
   const prev = all.find((c) => c.position === chapter.position - 1);
-  const prevTail = prev?.content ? prev.content.slice(-2500) : '';
+  const prevTail = prev?.content ? forAI(prev.content).slice(-2500) : '';
   const s = chapter.settings ?? {};
   const perChapter = chapterTargetWords(book, s);
   const mode = s.mode ?? 'full';

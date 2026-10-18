@@ -12,6 +12,8 @@ export interface CoverBrief {
   subtitle: string;
   moods: string[];
   format: 'ebook' | 'paperback';
+  /** Also make a hardcover (case laminate) cover. */
+  hardcover?: boolean;
   pageCountOverride: number | null;
   style: keyof typeof COVER_STYLES;
   imagery: string;

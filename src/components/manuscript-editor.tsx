@@ -5,9 +5,11 @@ import StarterKit from '@tiptap/starter-kit';
 import { Markdown } from 'tiptap-markdown';
 import { clsx } from 'clsx';
 import {
-  Bold, Heading1, Heading2, Heading3, Italic, Link2, List, ListOrdered, Minus, Pilcrow, Quote, Redo2, Underline, Undo2,
+  Bold, Heading1, Heading2, Heading3, ImagePlus, Italic, Link2, List, ListOrdered, Minus, Pilcrow, Quote, Redo2, Underline, Undo2,
 } from 'lucide-react';
+import { NodeSelection } from '@tiptap/pm/state';
 import { locate } from '@/lib/apply';
+import { BookImage, type ImageAttrs } from './book-image';
 
 export interface ManuscriptEditorHandle {
   /** The selected text, or '' if nothing is selected. */
@@ -24,6 +26,11 @@ interface Props {
   placeholder?: string;
   /** Rendered next to the selection when text is selected. */
   selectionMenu?: (args: { text: string; close: () => void }) => React.ReactNode;
+  /**
+   * Asks the page to add or edit an image. `current` is the selected image (null to add one);
+   * call `apply` with the new image, or null to remove it.
+   */
+  onImage?: (current: ImageAttrs | null, apply: (attrs: ImageAttrs | null) => void) => void;
 }
 
 function getMarkdown(editor: TiptapEditor): string {
@@ -51,7 +58,7 @@ function findInDoc(editor: TiptapEditor, needle: string) {
 }
 
 export const ManuscriptEditor = forwardRef<ManuscriptEditorHandle, Props>(function ManuscriptEditor(
-  { value, onChange, readOnly, placeholder, selectionMenu },
+  { value, onChange, readOnly, placeholder, selectionMenu, onImage },
   ref,
 ) {
   const lastEmitted = useRef(value);
@@ -69,10 +76,16 @@ export const ManuscriptEditor = forwardRef<ManuscriptEditorHandle, Props>(functi
         code: false,
         codeBlock: false,
       }),
+      BookImage,
       Markdown.configure({ html: true, tightLists: true, breaks: false, transformPastedText: true, transformCopiedText: false }),
     ],
     content: value,
     editorProps: {
+      handleDoubleClickOn: (_view, _pos, node) => {
+        if (node.type.name !== 'image') return false;
+        setTimeout(() => openImage(), 0);
+        return true;
+      },
       attributes: {
         class: 'manuscript-prose outline-none',
         'aria-label': 'Chapter text',
@@ -146,6 +159,25 @@ export const ManuscriptEditor = forwardRef<ManuscriptEditorHandle, Props>(functi
     focus: () => editor?.commands.focus(),
   }));
 
+  const imageRef = useRef(onImage);
+  imageRef.current = onImage;
+  function openImage() {
+    if (!editor || !imageRef.current) return;
+    const sel = editor.state.selection;
+    const selected = sel instanceof NodeSelection && sel.node.type.name === 'image' ? (sel.node.attrs as ImageAttrs) : null;
+    const at = sel.from;
+    // Remember where the cursor was: the image window takes focus away from the text.
+    const insertAt = sel.to;
+    imageRef.current(selected, (attrs) => {
+      const chain = editor.chain().focus();
+      if (selected) {
+        chain.setNodeSelection(at);
+        if (attrs) chain.updateAttributes('image', attrs).run();
+        else chain.deleteSelection().run();
+      } else if (attrs) chain.insertContentAt(Math.min(insertAt, editor.state.doc.content.size), { type: 'image', attrs }).run();
+    });
+  }
+
   function setLink() {
     if (!editor) return;
     const prev = editor.getAttributes('link').href as string | undefined;
@@ -169,6 +201,7 @@ export const ManuscriptEditor = forwardRef<ManuscriptEditorHandle, Props>(functi
         { label: 'Block quote', icon: Quote, run: () => editor.chain().focus().toggleBlockquote().run(), active: editor.isActive('blockquote') },
         { label: 'Insert link', icon: Link2, run: setLink, active: editor.isActive('link') },
         { label: 'Scene break', icon: Minus, run: () => editor.chain().focus().setHorizontalRule().run() },
+        ...(onImage ? [{ label: editor.isActive('image') ? 'Edit image' : 'Add image', icon: ImagePlus, run: openImage, active: editor.isActive('image') }] : []),
         { label: 'Undo', icon: Undo2, run: () => editor.chain().focus().undo().run(), key: 'Ctrl+Z' },
         { label: 'Redo', icon: Redo2, run: () => editor.chain().focus().redo().run(), key: 'Ctrl+Shift+Z' },
       ]
@@ -179,7 +212,7 @@ export const ManuscriptEditor = forwardRef<ManuscriptEditorHandle, Props>(functi
       <div className="sticky top-0 z-10 -mx-2 mb-4 flex flex-wrap gap-0.5 rounded-md border border-line bg-sheet/95 p-1 backdrop-blur sm:top-2" role="toolbar" aria-label="Formatting">
         {tools.map((t, i) => (
           <span key={t.label} className="contents">
-            {(i === 3 || i === 7 || i === 10 || i === 12) && <span className="mx-1 w-px self-stretch bg-line" aria-hidden />}
+            {(i === 3 || i === 7 || i === 10 || t.label === 'Undo') && <span className="mx-1 w-px self-stretch bg-line" aria-hidden />}
             <button
               type="button"
               onMouseDown={(e) => e.preventDefault()}

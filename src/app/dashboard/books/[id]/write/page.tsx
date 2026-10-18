@@ -13,5 +13,5 @@ export default async function WritePage({ params, searchParams }: { params: { id
   ]);
   const list = chapters ?? [];
   const initial = list.find((c) => c.id === searchParams.chapter)?.id ?? list.find((c) => !c.word_count)?.id ?? list[0]?.id ?? null;
-  return <Editor book={book as Book} chapters={list} initialId={initial} canPrint={planAllows(profile.plan, 'print')} />;
+  return <Editor book={book as Book} chapters={list} initialId={initial} canPrint={planAllows(profile.plan, 'print')} canGenerateImages={planAllows(profile.plan, 'cover')} />;
 }

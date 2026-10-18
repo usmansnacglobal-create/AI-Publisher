@@ -1,3 +1,5 @@
+import { normaliseLayout } from './layout';
+import { pageCountIssues } from './spine';
 import 'server-only';
 import type { Book } from './api';
 import type { createClient } from './supabase/server';
@@ -28,11 +30,28 @@ export async function readiness(supabase: ReturnType<typeof createClient>, book:
     { id: 'blurb', label: 'Book description written', ok: !!book.blurb?.trim(), fix: 'Write or generate the description.', link: `${base}/publish` },
     { id: 'keywords', label: 'Keywords and categories chosen', ok: (book.keywords?.length ?? 0) > 0 && (book.categories?.length ?? 0) > 0, fix: 'Generate or enter keywords and categories.', link: `${base}/publish` },
   ];
-  if (formats.includes('paperback')) {
+  const print = formats.includes('paperback') || formats.includes('hardcover');
+  const ink = normaliseLayout(book.layout).ink;
+  const pages = book.page_count ?? 0;
+  if (print) {
     checks.push(
       { id: 'layout', label: 'Interior layout approved', ok: !!book.layout_approved_at && new Date(book.content_updated_at) <= new Date(book.layout_approved_at), fix: book.layout_approved_at ? 'Your text changed since you approved the layout. Approve it again.' : 'Approve the layout.', link: `${base}/format` },
       { id: 'interior', label: 'Print interior created', ok: !!book.page_count, fix: 'Download the print PDF on the Layout tab.', link: `${base}/format` },
+    );
+  }
+  if (formats.includes('paperback')) {
+    const issues = pages ? pageCountIssues(pages, book.trim_size, ink, book.paper) : [];
+    checks.push(
+      { id: 'pages', label: 'Page count within Amazon’s paperback limits', ok: !issues.length, fix: issues[0] ?? '', link: `${base}/format` },
       { id: 'wrap', label: 'Full print cover (with spine) exported', ok: !!cover?.wrap_path, fix: 'Export the full paperback cover.', link: `${base}/cover` },
+    );
+  }
+  if (formats.includes('hardcover')) {
+    const issues = pages ? pageCountIssues(pages, book.trim_size, ink, book.paper, 'hardcover') : [];
+    const { data: files } = await supabase.storage.from('covers').list(`${book.user_id}/${book.id}`, { search: 'cover-hardcover.pdf' });
+    checks.push(
+      { id: 'hc-pages', label: 'Size and page count suit a hardcover', ok: !issues.length, fix: issues[0] ?? '', link: `${base}/format` },
+      { id: 'hc-cover', label: 'Hardcover cover exported', ok: !!files?.some((f) => f.name === 'cover-hardcover.pdf'), fix: 'Tick “Also make a hardcover cover” in the cover brief, then export.', link: `${base}/cover` },
     );
   }
   if (formats.includes('audiobook')) {

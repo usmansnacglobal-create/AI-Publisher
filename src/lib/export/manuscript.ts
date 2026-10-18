@@ -10,7 +10,16 @@ export type Block =
   | { type: 'break' }
   | { type: 'heading'; text: string }
   | { type: 'quote'; runs: Run[] }
-  | { type: 'list'; ordered: boolean; items: Run[][] };
+  | { type: 'list'; ordered: boolean; items: Run[][] }
+  | { type: 'image'; src: string; caption: string; size: 'small' | 'medium' | 'full' };
+
+/** An image file ready to place in an export. */
+export interface ExportImage {
+  data: Buffer;
+  width: number;
+  height: number;
+  format: 'jpeg' | 'png';
+}
 
 export interface ManuscriptChapter {
   number: number;
@@ -30,6 +39,8 @@ export interface Manuscript {
   authorBio: string;
   language: string;
   chapters: ManuscriptChapter[];
+  /** Image files by their address in the text. Missing images are skipped. */
+  images?: Map<string, ExportImage>;
 }
 
 const SCENE_BREAK = /^\s*(\*\s*\*\s*\*|#|~{3}|-{3,}|_{3,}|⁂)\s*$/;
@@ -66,6 +77,13 @@ export function toBlocks(content: string): Block[] {
     if (!p) continue;
     if (SCENE_BREAK.test(p)) {
       blocks.push({ type: 'break' });
+      first = true;
+      continue;
+    }
+    const img = /^!\[([^\]]*)\]\(([^)\s]+)(?:\s+"([^"]*)")?\)$/.exec(p);
+    if (img) {
+      const size = img[3] === 'small' || img[3] === 'medium' ? img[3] : 'full';
+      blocks.push({ type: 'image', src: img[2], caption: img[1].replace(/\\([\[\]\\])/g, '$1'), size });
       first = true;
       continue;
     }

@@ -33,11 +33,19 @@ ${L.heading === 'modern' ? 'h1{font-style:normal;font-weight:bold;text-align:lef
 ${L.heading === 'decorative' ? '.orn{text-align:center;text-indent:0;margin-top:2.5em;font-size:1.2em}' : ''}
 .u{text-decoration:underline}
 blockquote{margin:1em 1.5em;font-style:italic}
-ul,ol{margin:.6em 0 .6em 1.4em;padding:0}li{margin:.2em 0}`;
+ul,ol{margin:.6em 0 .6em 1.4em;padding:0}li{margin:.2em 0}
+figure{margin:1.2em 0;text-align:center;page-break-inside:avoid}figure img{max-width:100%;height:auto}
+figure.small img{width:50%}figure.medium img{width:75%}figure.full img{width:100%}
+figcaption{font-size:.85em;font-style:italic;margin-top:.4em;text-indent:0}`;
 }
 
-function blockHtml(b: Block, opener: boolean) {
+function blockHtml(b: Block, opener: boolean, imageHref: (src: string) => string | null) {
   switch (b.type) {
+    case 'image': {
+      const href = imageHref(b.src);
+      if (!href) return '';
+      return `<figure class="${b.size}"><img src="${href}" alt="${escapeXml(b.caption)}"/>${b.caption ? `<figcaption>${escapeXml(b.caption)}</figcaption>` : ''}</figure>`;
+    }
     case 'break':
       return '<p class="break">* * *</p>';
     case 'heading':
@@ -103,9 +111,22 @@ export async function renderEpub(m: Manuscript, cover?: { data: Buffer; type: 'i
   );
   if (m.dedication) add('dedication', 'dedication.xhtml', page('Dedication', `<p class="center" style="margin-top:30%"><em>${escapeXml(m.dedication)}</em></p>`, lang));
 
+  // Pictures go into the ebook once each, named in reading order.
+  const imageFiles = new Map<string, string>();
+  const imageHref = (src: string) => {
+    const img = m.images?.get(src);
+    if (!img) return null;
+    if (!imageFiles.has(src)) {
+      const href = `images/img-${imageFiles.size + 1}.${img.format === 'png' ? 'png' : 'jpg'}`;
+      imageFiles.set(src, href);
+      o.file(href, img.data);
+      items.push({ id: `img${imageFiles.size}`, href, type: img.format === 'png' ? 'image/png' : 'image/jpeg' });
+    }
+    return imageFiles.get(src)!;
+  };
   m.chapters.forEach((c, i) => {
     const firstPara = c.blocks.findIndex((b) => b.type === 'para');
-    const body = c.blocks.map((b, j) => blockHtml(b, j === firstPara)).join('\n');
+    const body = c.blocks.map((b, j) => blockHtml(b, j === firstPara, imageHref)).join('\n');
     const label = L.heading === 'modern' ? String(c.number) : `Chapter ${numberWords(c.number)}`;
     const orn = L.heading === 'decorative' ? '<p class="orn">— ◆ —</p>' : '';
     add(`ch${i + 1}`, `chapter-${i + 1}.xhtml`, page(c.title, `<section epub:type="chapter">${orn}<p class="num">${escapeXml(label)}</p><h1>${escapeXml(c.title)}</h1>${body}</section>`, lang));

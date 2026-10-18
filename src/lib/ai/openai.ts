@@ -129,3 +129,23 @@ export async function narrate(o: { userId: string; bookId: string; chunks: strin
   // MP3 frames can simply be joined.
   return Buffer.concat(parts);
 }
+
+/** An illustration or photo-style image for inside the book (no text in the image). */
+export async function generateIllustration(o: { userId: string; bookId: string; prompt: string; shape: 'square' | 'landscape' | 'portrait' }): Promise<Buffer> {
+  await assertQuota(o.userId, TOKENS_PER_IMAGE * IMAGE_TOKEN_WEIGHT);
+  const size = o.shape === 'landscape' ? '1536x1024' : o.shape === 'portrait' ? '1024x1536' : '1024x1024';
+  const res = await openai().images.generate({ model: IMAGE_MODEL, prompt: o.prompt, n: 1, size, quality: 'high', output_format: 'png' });
+  const usage = (res as unknown as { usage?: { input_tokens?: number; output_tokens?: number } }).usage;
+  await recordUsage({
+    userId: o.userId,
+    bookId: o.bookId,
+    feature: 'illustration',
+    provider: 'openai',
+    model: IMAGE_MODEL,
+    inputTokens: usage?.input_tokens ?? 0,
+    outputTokens: usage?.output_tokens ?? TOKENS_PER_IMAGE,
+  });
+  const b64 = res.data?.[0]?.b64_json;
+  if (!b64) throw new HttpError(502, 'The image didn’t come back. Try again.');
+  return Buffer.from(b64, 'base64');
+}

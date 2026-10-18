@@ -2,10 +2,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { clsx } from 'clsx';
-import { Check, Download, RefreshCw } from 'lucide-react';
+import { AlertTriangle, Check, Download, RefreshCw } from 'lucide-react';
 import type { Book } from '@/lib/api';
 import { api, errorText } from '@/lib/client';
-import { estimatePages, spineWidth, TRIM_SIZES } from '@/lib/spine';
+import { estimatePages, INKS, pageCountIssues, spineWidth, TRIM_SIZES, type Ink } from '@/lib/spine';
+import { printCost } from '@/lib/publishing';
+import { ImageCheck } from '@/components/image-check';
 import { formatNumber } from '@/lib/text';
 import { BODY_FONTS, HEADING_STYLES, PAGE_NUMBERS, TRIM_NOTES, normaliseLayout, type LayoutSettings } from '@/lib/layout';
 import { Badge, Button, Field } from '@/components/ui';
@@ -162,16 +164,35 @@ export function Format({ book, words, chapterCount, canPrint }: { book: Book; wo
         </div>
 
         <div className="panel px-4">
-          <Section title="Trim size and paper">
-            <Field label="Trim size" htmlFor="trim" hint={TRIM_NOTES[f.trim_size]}>
+          <Section title="Trim size, paper and colour">
+            <Field label="Trim size" htmlFor="trim" hint={<>{TRIM_NOTES[f.trim_size]}.{TRIM_SIZES[f.trim_size]?.hardcover ? ' Also available as a hardcover.' : ''}</>}>
               <select id="trim" className="field" value={f.trim_size} onChange={(e) => change({}, { trim_size: e.target.value })}>
-                {Object.entries(TRIM_SIZES).map(([k, t]) => <option key={k} value={k}>{t.label}</option>)}
+                <optgroup label="Amazon standard sizes">
+                  {Object.entries(TRIM_SIZES).filter(([, t]) => !t.custom).map(([k, t]) => <option key={k} value={k}>{t.label}</option>)}
+                </optgroup>
+                <optgroup label="Custom sizes">
+                  {Object.entries(TRIM_SIZES).filter(([, t]) => t.custom).map(([k, t]) => <option key={k} value={k}>{t.label}</option>)}
+                </optgroup>
               </select>
             </Field>
-            <div className="flex gap-2" role="radiogroup" aria-label="Paper">
-              {(['white', 'cream'] as const).map((p) => (
-                <button key={p} type="button" className="chip" aria-pressed={f.paper === p} onClick={() => change({}, { paper: p })}>{p === 'white' ? 'White paper' : 'Cream paper'}</button>
-              ))}
+            <div>
+              <p className="label">Interior printing</p>
+              <div className="grid gap-2" role="radiogroup" aria-label="Interior printing">
+                {(Object.keys(INKS) as Ink[]).map((k) => (
+                  <button key={k} type="button" role="radio" aria-checked={L.ink === k} onClick={() => change({ ink: k }, k === 'bw' ? undefined : { paper: 'white' })} className={`rounded-md border p-2.5 text-left text-[14px] ${L.ink === k ? 'border-cloth bg-cloth-light' : 'border-line hover:border-line-strong'}`}>
+                    <span className="flex items-baseline justify-between gap-2"><span className="font-medium">{INKS[k].label}</span><span className="text-[12px] text-ink-muted">about ${printCost(Math.max(shownPages, k === 'standard' ? 72 : 24), { trim: f.trim_size, ink: k }).toFixed(2)} a copy</span></span>
+                    <span className="block text-[12px] text-ink-muted">{INKS[k].note}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <div className="flex gap-2" role="radiogroup" aria-label="Paper">
+                {(['white', 'cream'] as const).map((p) => (
+                  <button key={p} type="button" className="chip disabled:opacity-50" aria-pressed={f.paper === p} disabled={p === 'cream' && L.ink !== 'bw'} onClick={() => change({}, { paper: p })}>{p === 'white' ? 'White paper' : 'Cream paper'}</button>
+                ))}
+              </div>
+              {L.ink !== 'bw' && <p className="hint">Colour is printed on white paper.</p>}
             </div>
           </Section>
 
@@ -236,8 +257,12 @@ export function Format({ book, words, chapterCount, canPrint }: { book: Book; wo
         <dl className="mt-4 grid grid-cols-3 gap-px overflow-hidden rounded-md border border-line bg-line text-[13px]">
           <div className="bg-sheet p-3"><dt className="text-ink-muted">Words</dt><dd className="font-serif text-[1.2rem]">{formatNumber(words)}</dd></div>
           <div className="bg-sheet p-3"><dt className="text-ink-muted">{pages ? 'Pages' : 'Pages (est.)'}</dt><dd className="font-serif text-[1.2rem]">{shownPages}</dd></div>
-          <div className="bg-sheet p-3"><dt className="text-ink-muted">Spine</dt><dd className="font-serif text-[1.2rem]">{spineWidth(shownPages, f.paper).toFixed(3)}″</dd></div>
+          <div className="bg-sheet p-3"><dt className="text-ink-muted">Spine</dt><dd className="font-serif text-[1.2rem]">{spineWidth(shownPages, f.paper, L.ink).toFixed(3)}″</dd></div>
         </dl>
+        <ImageCheck bookId={book.id} version={`${f.trim_size}-${L.margins.outside}`} />
+        {pageCountIssues(shownPages, f.trim_size, L.ink, f.paper).map((m) => (
+          <p key={m} role="alert" className="mt-3 flex gap-2 rounded-md bg-gilt-light px-3 py-2 text-[13px] text-gilt-ink"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />{m}</p>
+        ))}
       </section>
 
       <section className="min-w-0 space-y-6">

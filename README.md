@@ -28,7 +28,7 @@ You need accounts with GitHub, Vercel, Supabase, Anthropic, OpenAI and (before c
 
 ### 1. Supabase
 1. Create a project at [supabase.com](https://supabase.com). Choose a region near your authors (for example London).
-2. Open **SQL Editor → New query**, paste everything from `supabase/migrations/0001_init.sql`, and click **Run**. Then do the same with `0002_old_tool_features.sql` (safe to run more than once).
+2. Open **SQL Editor → New query**, paste everything from `supabase/migrations/0001_init.sql`, and click **Run**. Then do the same with `0002_old_tool_features.sql` and `0003_print_options.sql` (each is safe to run more than once).
 3. **Authentication → URL Configuration**: set **Site URL** to your site's address (for example `https://aipublisher.com`) and add `https://aipublisher.com/**` under **Redirect URLs**.
 4. **Project Settings → API**: copy the **Project URL**, the **anon public** key and the **service_role** key for step 3.
 

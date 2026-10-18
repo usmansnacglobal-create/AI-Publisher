@@ -4,7 +4,7 @@ import { handle, json, requireUser, requireBook, HttpError } from '@/lib/api';
 import { completeStructured, FAST_MODEL } from '@/lib/ai/claude';
 import { locate, applyReplacement } from '@/lib/apply';
 import { snapshot } from '@/lib/chapters';
-import { countWords } from '@/lib/text';
+import { countWords, forAI } from '@/lib/text';
 
 export const maxDuration = 300;
 
@@ -48,7 +48,7 @@ export const POST = handle(async (req: Request, { params }: { params: { id: stri
     model: FAST_MODEL,
     maxTokens: 8000,
     system: `You are a professional proofreader using ${dialect === 'UK' ? 'British' : 'American'} English conventions. Find objective errors only: spelling, grammar, punctuation, inconsistent spelling or capitalisation of names, doubled words, wrong homophones, quote and dash typography. Do not rewrite for style. Leave deliberate dialect in dialogue alone.`,
-    prompt: `<chapter title="${chapter.title.replace(/"/g, "'")}">\n${chapter.content}\n</chapter>`,
+    prompt: `<chapter title="${chapter.title.replace(/"/g, "'")}">\n${forAI(chapter.content)}\n</chapter>`,
   });
   const issues = result.issues.filter((i) => i.original !== i.replacement && locate(chapter.content, i.original));
   await supabase.from('reports').delete().eq('chapter_id', chapter.id).eq('kind', 'proofread');

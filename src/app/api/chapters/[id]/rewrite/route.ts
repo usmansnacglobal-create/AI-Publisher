@@ -3,7 +3,7 @@ import { handle, requireUser, HttpError } from '@/lib/api';
 import { loadChapter, loadContext, snapshot } from '@/lib/chapters';
 import { streamText } from '@/lib/ai/claude';
 import { bookBrief, bibleBlock, WRITER_SYSTEM } from '@/lib/ai/prompts';
-import { countWords } from '@/lib/text';
+import { countWords, forAI, restoreImages } from '@/lib/text';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 export const maxDuration = 300;
@@ -30,13 +30,14 @@ export const POST = handle(async (req: Request, { params }: { params: { id: stri
     prompt: `${bookBrief(book)}${bibleBlock(bible)}
 
 <chapter number="${chapter.position}" title="${chapter.title.replace(/"/g, "'")}">
-${chapter.content}
+${forAI(chapter.content)}
 </chapter>
 
 Rewrite this entire chapter following this instruction: ${instruction}
-Keep every plot point, fact and character beat unless the instruction says otherwise. Output the complete rewritten chapter only.`,
+Keep every plot point, fact and character beat unless the instruction says otherwise. Keep every [Image: …] placeholder on its own line where it belongs. Output the complete rewritten chapter only.`,
     onDone: async (text) => {
       if (!text.trim()) return;
+      text = restoreImages(chapter.content, text);
       await createAdminClient()
         .from('chapters')
         .update({ content: text, word_count: countWords(text), status: 'drafted' })

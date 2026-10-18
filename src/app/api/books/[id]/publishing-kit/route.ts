@@ -1,3 +1,4 @@
+import { forAI } from '@/lib/text';
 import { requireFeature } from '@/lib/tokens';
 import { z } from 'zod';
 import { handle, json, requireUser, requireBook, HttpError } from '@/lib/api';
@@ -33,7 +34,7 @@ export const POST = handle(async (req: Request, { params }: { params: { id: stri
     supabase.from('profiles').select('full_name,pen_name,bio,website').eq('id', user.id).single(),
   ]);
   const sample = (chapters ?? [])
-    .map((c) => `${c.position}. ${c.title}: ${c.synopsis || c.content.slice(0, 600)}`)
+    .map((c) => `${c.position}. ${c.title}: ${c.synopsis || forAI(c.content).slice(0, 600)}`)
     .join('\n')
     .slice(0, 40000);
   if (!sample && !book.summary) throw new HttpError(400, 'Add a summary or some chapters first, so the copy reflects your book.');

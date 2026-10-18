@@ -101,16 +101,25 @@ The preview shows the first two chapters. Click **Refresh** if it hasn't updated
     title: 'Choosing a trim size',
     summary: 'The page size of your paperback.',
     answer:
-      'On the **Layout** tab, pick a trim size: 5″×8″, 5.25″×8″, 5.5″×8.5″, 6″×9″, 4.25″×7″, 8.5″×8.5″ or 8.5″×11″, plus white or cream paper. **6″×9″** is the most common size for non-fiction, and 5.5″×8.5″ or 5″×8″ suit most novels.',
-    questions: ['what size should my book be', 'trim size', 'page size', 'book dimensions', '6x9', 'paper colour', 'cream or white paper'],
-    keywords: ['trim', 'size', 'dimensions', 'page', '6x9', '5x8', 'paperback', 'paper', 'cream', 'white'],
+      'On the **Layout** tab, pick one of Amazon’s 16 standard trim sizes (from 5″×8″ to 8.5″×11″, including 7″×10″, 8″×10″ and square sizes) and white or cream paper. **6″×9″** is the most common size for non-fiction, and 5.5″×8.5″ or 5″×8″ suit most novels. Each size has Amazon’s page limits, and the tool warns you if your book is outside them.',
+    questions: ['what size should my book be', 'trim size', 'page size', 'book dimensions', '6x9', '7x10', '8x10', 'paper colour', 'cream or white paper', 'maximum number of pages', 'page limit', 'my book is too long for amazon'],
+    keywords: ['trim', 'size', 'sizes', 'dimensions', 'page', '6x9', '5x8', '7x10', '8x10', 'a4', 'paperback', 'paper', 'cream', 'white', 'limit', 'limits', 'maximum', 'minimum', 'pages'],
     related: ['layout-typographer', 'spine'],
     pages: ['format', 'cover'],
-    body: `Available sizes: **5″ × 8″**, **5.25″ × 8″**, **5.5″ × 8.5″**, **6″ × 9″**, **4.25″ × 7″** (mass-market paperback), **8.5″ × 8.5″** (square, for picture or photo books) and **8.5″ × 11″** (workbooks and manuals).
+    body: `### Amazon's standard sizes
+5″ × 8″, 5.06″ × 7.81″, 5.25″ × 8″, 5.5″ × 8.5″, 6″ × 9″, 6.14″ × 9.21″, 6.69″ × 9.61″, 7″ × 10″, 7.44″ × 9.69″, 7.5″ × 9.25″, 8″ × 10″, 8.25″ × 6″ (landscape), 8.25″ × 8.25″, 8.5″ × 8.5″, 8.5″ × 11″ and 8.27″ × 11.69″ (A4). Two custom sizes are also available: 4.25″ × 7″ (pocket) and 8.25″ × 11″.
 
-- Novels: 5″ × 8″, 5.25″ × 8″ or 5.5″ × 8.5″.
+- Novels: 5″ × 8″, 5.06″ × 7.81″, 5.25″ × 8″ or 5.5″ × 8.5″.
 - Non-fiction and memoir: 6″ × 9″ or 5.5″ × 8.5″.
-- Cream paper is traditional for fiction; white suits non-fiction and anything with pictures.
+- Textbooks and illustrated guides: 7″ × 10″ or 7.5″ × 9.25″.
+- Photo books, cookbooks and children's books: 8″ × 10″, 8.25″ × 8.25″ or 8.5″ × 8.5″.
+- Workbooks and manuals: 8.5″ × 11″ or A4.
+- Cream paper is traditional for fiction; white suits non-fiction and anything with pictures. Colour is always printed on white paper.
+
+Sizes wider than 6.12″ or taller than 9″ count as "large" on Amazon and cost a little more to print.
+
+### Page limits
+Amazon prints paperbacks of 24 to 828 pages on white paper (776 on cream). Standard colour needs 72 to 600 pages. The square and letter-size books have lower maximums (for example 590 pages for 8.5″ × 11″). The Layout tab, the cover designer and the publishing checklist all warn you if your book is outside the limits for its size.
 
 Changing the trim size or paper changes your page count and spine width. Approve the layout again and re-export your cover afterwards.`,
   },
@@ -147,7 +156,7 @@ If you edit any chapter after approving, the layout is marked outdated. Look ove
     pages: ['format', 'write'],
     body: `You'll find downloads on the **Layout** tab, and under **Export** above the page in the editor.
 
-- **Print interior (PDF)**: for paperbacks on Amazon KDP and IngramSpark. Uses your layout settings. Pro and Agency.
+- **Print interior (PDF)**: for paperbacks and hardcovers on Amazon KDP and IngramSpark. Uses your layout settings and includes your images (in greyscale for black-and-white books). Pro and Agency.
 - **EPUB ebook**: for Kindle, Apple Books, Kobo and Google Play. Includes your cover once it's finished.
 - **Word manuscript (DOCX)**: for editors, agents or other tools.
 - **Markdown** and **plain text**: simple text with headings and emphasis.
@@ -412,5 +421,60 @@ To publish an audiobook, every chapter must be narrated and up to date.`,
     body: `The audiobook stores in the publishing flow are **Audible / ACX**, **Spotify** and **Apple Books audiobooks**. Their rules on AI narration differ and change over time, and some don't accept it.
 
 When you submit, our publishing team checks your audiobook against the current rules of each store you selected and lets you know if any can't take it.`,
+  },
+  {
+    slug: 'colour-printing',
+    category: 'layout',
+    title: 'Black and white or colour printing',
+    summary: 'Choose black and white, standard colour or premium colour.',
+    answer:
+      'On the **Layout** tab under **Interior printing**, choose **Black and white** (cheapest; pictures print in greyscale), **Standard colour** (colour on lighter paper, 72 pages or more) or **Premium colour** (rich colour on heavier paper, best for photo books, cookbooks and children’s books). Each option shows about what a copy costs to print.',
+    questions: ['can i print in colour', 'colour printing', 'color interior', 'print my photos in colour', 'premium colour', 'standard colour', 'black and white or colour', 'why are my pictures grey', 'how much does colour printing cost'],
+    keywords: ['colour', 'color', 'ink', 'premium', 'standard', 'black', 'white', 'greyscale', 'grayscale', 'grey', 'print', 'cost', 'interior'],
+    related: ['images', 'trim-sizes', 'publish-details'],
+    pages: ['format'],
+    body: `Open the **Layout** tab and choose under **Interior printing**:
+
+- **Black and white**: text, line art and greyscale photos. The most affordable to print. Pictures are converted to greyscale in the print PDF so what you see is what prints.
+- **Standard colour**: colour on lighter paper, good for books with occasional colour pictures. Needs 72 to 600 pages and isn't available for hardcovers or A4.
+- **Premium colour**: rich colour on heavier paper. Best for photo books, cookbooks and children's books.
+
+Colour is always printed on white paper. Each option shows roughly what one copy costs to print for your page count and size, using Amazon's US printing prices.
+
+### What it costs (Amazon US, per copy)
+- Black and white: $2.30 up to 108 pages, then $1.00 plus about 1.2¢ a page (a little more for large sizes).
+- Standard colour: $1.00 plus about 2.6¢ a page (4¢ for large sizes).
+- Premium colour: $1.00 plus 6.5¢ a page (8¢ for large sizes).
+
+Colour makes the book cost more to print, so the minimum price goes up too. The Publish tab works this out for you.`,
+  },
+  {
+    slug: 'hardcover',
+    category: 'cover',
+    title: 'Hardcover books',
+    summary: 'Sizes, page counts, the hardcover cover and publishing a hardcover.',
+    answer:
+      'Amazon prints hardcovers in 5.5″×8.5″, 6″×9″, 6.14″×9.21″, 7″×10″ and 8.25″×11″, with 75 to 550 pages, in black and white or premium colour. Choose one of those sizes on the **Layout** tab, tick **Also make a hardcover cover** in the cover brief, export your cover files, then choose **Hardcover** when you publish.',
+    questions: ['can i make a hardcover', 'hardcover book', 'hardback', 'hard cover version', 'hardcover cover size', 'case laminate', 'why is hardcover greyed out', 'how much is a hardcover to print'],
+    keywords: ['hardcover', 'hardback', 'hard', 'case', 'laminate', 'boards', 'hinge', 'wrap', 'binding'],
+    related: ['cover-export', 'trim-sizes', 'publish-formats-stores'],
+    pages: ['cover', 'publish'],
+    body: `### What Amazon offers
+- **Sizes**: 5.5″ × 8.5″, 6″ × 9″, 6.14″ × 9.21″, 7″ × 10″ and 8.25″ × 11″.
+- **Length**: 75 to 550 pages.
+- **Printing**: black and white or premium colour (not standard colour).
+- **Cover**: a case-laminate cover printed and wrapped around the boards.
+
+### Make one
+1. On the **Layout** tab, choose one of the hardcover sizes. You'll see "Also available as a hardcover" under the trim size.
+2. In the **Cover** tab's Brief step, choose **Paperback and ebook** and tick **Also make a hardcover cover**.
+3. Design the cover as usual. The Design step shows the full hardcover cover too: the outer 0.591″ on each side wraps around the boards, and the strips beside the spine are the hinges, so lettering is kept well inside them.
+4. In **Finalize and export**, click **Export files**. You get a print-ready hardcover cover PDF as well as the paperback one.
+5. On the **Publish** tab, tick **Hardcover** in step 2 and set a hardcover price in step 4.
+
+### Price
+Hardcovers cost more to print: on Amazon US about $6.80 for up to 108 pages in black and white, then $5.65 plus about 1.2¢ a page. The Publish tab suggests a price that earns about $3 a copy.
+
+> The hardcover cover is sized from Amazon's published measurements. Before uploading your first hardcover, compare the cover PDF with the template from Amazon's cover calculator, as Amazon recommends.`,
   },
 ];

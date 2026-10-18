@@ -306,6 +306,29 @@ async function renderOnce(m: Manuscript, trim: string, estimatedPages: number, t
         doc.moveDown(0.5);
         continue;
       }
+      if (b.type === 'image') {
+        const img = m.images?.get(b.src);
+        if (!img) continue;
+        const maxW = width() * ({ small: 0.5, medium: 0.75, full: 1 } as const)[b.size];
+        const textH = G.pageH - G.margin.top - G.margin.bottom;
+        // Never taller than most of the page, leaving room for the caption.
+        let w = maxW;
+        let h = (w * img.height) / img.width;
+        const capH = b.caption ? G.size * 2.6 : 0;
+        if (h > textH * 0.88 - capH) {
+          h = textH * 0.88 - capH;
+          w = (h * img.width) / img.height;
+        }
+        if (doc.y + h + capH + G.size > bottomLimit()) newPage();
+        else doc.moveDown(0.6);
+        const left = doc.page.margins.left + (width() - w) / 2;
+        const top = doc.y;
+        doc.image(img.data, left, top, { width: w, height: h });
+        doc.y = top + h + G.size * 0.5;
+        if (b.caption) doc.font('I').fontSize(G.size * 0.85).text(b.caption, doc.page.margins.left, doc.y, { width: width(), align: 'center' });
+        doc.moveDown(0.8);
+        continue;
+      }
       if (b.type === 'list') {
         doc.moveDown(0.2);
         b.items.forEach((item, i) => {

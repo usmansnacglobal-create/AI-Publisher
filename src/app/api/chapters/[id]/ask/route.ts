@@ -1,3 +1,4 @@
+import { forAI } from '@/lib/text';
 import { z } from 'zod';
 import { handle, requireUser } from '@/lib/api';
 import { loadChapter, loadContext } from '@/lib/chapters';
@@ -33,7 +34,7 @@ ${outline}
 </outline>
 
 <current_chapter number="${chapter.position}" title="${chapter.title.replace(/"/g, "'")}">
-${chapter.content.slice(0, 30000)}
+${forAI(chapter.content).slice(0, 30000)}
 </current_chapter>
 ${convo ? `\n<conversation>\n${convo}\n</conversation>\n` : ''}
 Author: ${question}`,

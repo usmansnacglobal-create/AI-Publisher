@@ -3,7 +3,7 @@ import { handle, requireUser } from '@/lib/api';
 import { loadChapter, loadContext, snapshot } from '@/lib/chapters';
 import { streamText } from '@/lib/ai/claude';
 import { chapterPrompt, WRITER_SYSTEM } from '@/lib/ai/prompts';
-import { countWords } from '@/lib/text';
+import { countWords, forAI, restoreImages } from '@/lib/text';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { logActivity, notify } from '@/lib/notify';
 
@@ -37,7 +37,7 @@ export const POST = handle(async (req: Request, { params }: { params: { id: stri
 
   let prompt = chapterPrompt(book, chapter, chapters, bible);
   if (mode === 'continue' && chapter.content.trim()) {
-    prompt += `\n\nThe chapter so far:\n<chapter_so_far>\n${chapter.content.slice(-12000)}\n</chapter_so_far>\nContinue the chapter from exactly where it stops, about 800–1,200 words. Output only the new text.`;
+    prompt += `\n\nThe chapter so far:\n<chapter_so_far>\n${forAI(chapter.content).slice(-12000)}\n</chapter_so_far>\nContinue the chapter from exactly where it stops, about 800–1,200 words. Output only the new text.`;
   }
   if (guidance) prompt += `\n\nAuthor's notes for this chapter: ${guidance}`;
 
@@ -50,7 +50,8 @@ export const POST = handle(async (req: Request, { params }: { params: { id: stri
     prompt,
     maxTokens: mode === 'continue' ? 3000 : 16000,
     onDone: async (text) => {
-      const content = base + text;
+      // A redraft keeps the author's images (added at the end if the new text doesn't place them).
+      const content = mode === 'write' ? restoreImages(chapter.content, text) : base + text;
       // Admin client: the request may have ended, but the chapter must still be saved.
       await createAdminClient()
         .from('chapters')

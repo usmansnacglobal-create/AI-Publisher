@@ -1,4 +1,5 @@
 'use client';
+import { importManuscript } from '@/lib/import-client';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { clsx } from 'clsx';
@@ -114,9 +115,7 @@ function Upload({ defaultAuthor, onBack }: { defaultAuthor: string; onBack: () =
     setBusy(true);
     try {
       const { id } = await api<{ id: string }>('/api/books', { body: { ...f, target_words: 50000, target_chapters: 1 } });
-      const form = new FormData();
-      form.set('file', file);
-      await api(`/api/books/${id}/import`, { form }).catch((err) => toast(`Book created, but the import failed: ${errorText(err)}`, 'error'));
+      await importManuscript(id, file).catch((err) => toast(`Book created, but the import failed: ${errorText(err)}`, 'error'));
       router.push(`/dashboard/books/${id}/write`);
       router.refresh();
     } catch (err) {

@@ -1,6 +1,34 @@
+/** A Markdown image: ![caption](src "size"). Images live on their own line. */
+export const IMAGE_RE = /!\[([^\]]*)\]\(([^)\s]+)(?:\s+"([^"]*)")?\)/g;
+export const IMAGE_LINE = /^!\[([^\]]*)\]\(([^)\s]+)(?:\s+"([^"]*)")?\)\s*$/;
+
+/** Chapter text for the AI: images become short placeholders it can keep in place. */
+export function forAI(content: string) {
+  return content.replace(IMAGE_RE, (_m, alt: string) => `[Image: ${alt.trim() || 'untitled'}]`);
+}
+
+/**
+ * Puts the author's images back after the AI has rewritten a chapter: each
+ * "[Image: …]" placeholder becomes the original image again, and any image the
+ * AI dropped is added at the end so nothing is lost.
+ */
+export function restoreImages(original: string, rewritten: string) {
+  const images = [...original.matchAll(IMAGE_RE)].map((m) => ({ md: m[0], alt: m[1].trim() || 'untitled', used: false }));
+  if (!images.length) return rewritten;
+  let out = rewritten.replace(/\[Image:\s*([^\]]*)\]/g, (m, alt: string) => {
+    const hit = images.find((i) => !i.used && i.alt === alt.trim()) ?? images.find((i) => !i.used);
+    if (!hit) return '';
+    hit.used = true;
+    return hit.md;
+  });
+  const left = images.filter((i) => !i.used);
+  if (left.length) out = `${out.trimEnd()}\n\n${left.map((i) => i.md).join('\n\n')}`;
+  return out;
+}
+
 export function countWords(text: string | null | undefined): number {
   if (!text) return 0;
-  const m = text.replace(/[#*_>`~]+/g, ' ').match(/[\p{L}\p{N}][\p{L}\p{N}'’-]*/gu);
+  const m = text.replace(IMAGE_RE, ' ').replace(/[#*_>`~]+/g, ' ').match(/[\p{L}\p{N}][\p{L}\p{N}'’-]*/gu);
   return m ? m.length : 0;
 }
 

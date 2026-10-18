@@ -15,7 +15,7 @@ type Track = { path: string; chars: number; minutes: number; voice: string; gene
 function spokenText(position: number, title: string, content: string) {
   const body = toBlocks(content)
     .map((b) =>
-      b.type === 'break' ? '' : b.type === 'heading' ? `${b.text}.` : b.type === 'list' ? b.items.map((it) => plain(it)).join('. ') : plain(b.runs),
+      b.type === 'break' || b.type === 'image' ? '' : b.type === 'heading' ? `${b.text}.` : b.type === 'list' ? b.items.map((it) => plain(it)).join('. ') : plain(b.runs),
     )
     .filter((x) => x.trim())
     .join('\n\n');

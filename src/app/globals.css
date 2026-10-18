@@ -156,3 +156,13 @@ a { text-underline-offset: 3px; }
 .manuscript-prose a { color: rgb(var(--c-cloth)); text-decoration: underline; }
 .manuscript-prose ::selection { background: rgb(var(--c-selection)); }
 .manuscript-prose:focus { outline: none; }
+
+/* Images in the editor: captioned, sized like the printed book */
+.manuscript-prose figure.book-figure { margin: 1.4em auto; text-align: center; text-indent: 0; }
+.manuscript-prose figure.book-figure img { display: block; margin: 0 auto; max-width: 100%; height: auto; border-radius: 2px; }
+.manuscript-prose figure.book-figure[data-size='small'] img { width: 50%; }
+.manuscript-prose figure.book-figure[data-size='medium'] img { width: 75%; }
+.manuscript-prose figure.book-figure[data-size='full'] img { width: 100%; }
+.manuscript-prose figure.book-figure figcaption { margin-top: 0.5em; font-size: 0.82em; font-style: italic; color: rgb(var(--c-ink-muted)); }
+.manuscript-prose figure.book-figure figcaption:empty { display: none; }
+.manuscript-prose figure.ProseMirror-selectednode img { outline: 3px solid rgb(var(--c-cloth)); outline-offset: 2px; }

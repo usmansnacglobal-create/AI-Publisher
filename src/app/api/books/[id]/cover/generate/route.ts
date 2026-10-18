@@ -1,3 +1,4 @@
+import sharp from 'sharp';
 import { requireFeature } from '@/lib/tokens';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
@@ -82,8 +83,11 @@ export const POST = handle(async (req: Request, { params }: { params: { id: stri
 
   const fresh: { path: string; prompt: string; created_at: string; kind: string }[] = [];
   for (const img of images) {
-    const path = `${user.id}/${book.id}/concept-${randomUUID()}.png`;
-    const { error } = await supabase.storage.from('covers').upload(path, img, { contentType: 'image/png' });
+    // ChatGPT paints at 1024 × 1536. Enlarge it twice over with a high-quality filter so it
+    // prints at about 300 dpi on the larger trim sizes too.
+    const big = await sharp(img).resize({ width: 2048, height: 3072, kernel: 'lanczos3' }).jpeg({ quality: 92 }).toBuffer();
+    const path = `${user.id}/${book.id}/concept-${randomUUID()}.jpg`;
+    const { error } = await supabase.storage.from('covers').upload(path, big, { contentType: 'image/jpeg' });
     if (error) throw error;
     fresh.push({ path, prompt: direction, created_at: new Date().toISOString(), kind: 'ai' });
   }

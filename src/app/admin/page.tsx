@@ -13,7 +13,7 @@ export default async function AdminPage() {
   const admin = createAdminClient();
   const { data: subs } = await admin
     .from('submissions')
-    .select('*, books(id,title,genre,trim_size,page_count)')
+    .select('*, books(id,title,genre,trim_size,page_count,paper,layout)')
     .order('created_at', { ascending: false })
     .limit(200);
   const { data: people } = await admin.from('profiles').select('id,email,full_name,pen_name').in('id', [...new Set((subs ?? []).map((s) => s.user_id))]);

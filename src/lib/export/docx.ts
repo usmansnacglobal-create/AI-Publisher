@@ -1,5 +1,5 @@
 import 'server-only';
-import { AlignmentType, Document, HeadingLevel, Packer, PageBreak, Paragraph, TextRun } from 'docx';
+import { AlignmentType, Document, HeadingLevel, ImageRun, Packer, PageBreak, Paragraph, TextRun } from 'docx';
 import type { Manuscript, Run } from './manuscript';
 
 /** Word manuscript in standard submission format (for editors, agents or other tools). */
@@ -15,7 +15,15 @@ export async function renderDocx(m: Manuscript) {
     children.push(new Paragraph({ heading: HeadingLevel.HEADING_1, alignment: AlignmentType.CENTER, children: [new TextRun(`Chapter ${c.number}: ${c.title}`)] }));
     for (const b of c.blocks) {
       const runs = (rs: Run[]) => rs.map((r) => new TextRun({ text: r.text, bold: r.bold, italics: r.italic, underline: r.underline ? {} : undefined }));
-      if (b.type === 'break') children.push(new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun('* * *')] }));
+      if (b.type === 'image') {
+        const img = m.images?.get(b.src);
+        if (!img) continue;
+        // Word measures images in pixels at 96 per inch; the text area is 6.5 inches wide.
+        const w = Math.round(6.5 * 96 * ({ small: 0.5, medium: 0.75, full: 1 } as const)[b.size]);
+        const h = Math.round((w * img.height) / img.width);
+        children.push(new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 240, after: b.caption ? 60 : 240 }, children: [new ImageRun({ type: img.format === 'png' ? 'png' : 'jpg', data: img.data, transformation: { width: w, height: h } })] }));
+        if (b.caption) children.push(new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 240 }, children: [new TextRun({ text: b.caption, italics: true, size: 20 })] }));
+      } else if (b.type === 'break') children.push(new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun('* * *')] }));
       else if (b.type === 'heading') children.push(new Paragraph({ heading: HeadingLevel.HEADING_2, children: [new TextRun(b.text)] }));
       else if (b.type === 'quote') children.push(new Paragraph({ indent: { left: 720, right: 720 }, spacing: { line: 360 }, children: runs(b.runs.map((r) => ({ ...r, italic: !r.italic }))) }));
       else if (b.type === 'list')

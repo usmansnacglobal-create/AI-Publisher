@@ -96,6 +96,7 @@ export const FEATURE_LABELS: Record<string, string> = {
   publishing_kit: 'Publishing kit',
   cover_image: 'Cover images',
   cover_text: 'Cover copy',
+  illustration: 'Book images',
   audiobook: 'Audiobook narration',
 };
 

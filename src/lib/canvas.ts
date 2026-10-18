@@ -207,7 +207,7 @@ export function drawWrap(
   d: CoverDesign,
   front: FrontText,
   back: BackText,
-  geo: { trimW: number; trimH: number; spine: number; bleed: number; spineText: boolean },
+  geo: { trimW: number; trimH: number; spine: number; bleed: number; spineText: boolean; safe?: number },
   dpi: number,
   assets: WrapAssets = {},
 ) {
@@ -217,7 +217,7 @@ export function drawWrap(
   const sw = geo.spine * dpi;
   const W = tw * 2 + sw + b * 2;
   const H = th + b * 2;
-  const safe = 0.25 * dpi;
+  const safe = (geo.safe ?? 0.25) * dpi;
   const backW = b + tw;
 
   // Back panel background
