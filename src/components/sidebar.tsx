@@ -3,7 +3,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { clsx } from 'clsx';
-import { Bell, BookOpen, CreditCard, Gauge, History, LayoutGrid, LogOut, Menu, Settings, Shield, Send, PenLine, X } from 'lucide-react';
+import { Bell, BookOpen, CreditCard, Gauge, History, Inbox, LayoutGrid, LifeBuoy, LogOut, Menu, Settings, Shield, Send, PenLine, X } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { compact } from '@/lib/text';
 import { Progress } from './ui';
@@ -19,6 +19,7 @@ const NAV = [
   { href: '/dashboard/activity', label: 'Activity', icon: History },
   { href: '/dashboard/notifications', label: 'Notifications', icon: Bell },
   { href: '/dashboard/settings', label: 'Settings', icon: Settings },
+  { href: '/dashboard/help', label: 'Help', icon: LifeBuoy },
 ];
 
 export function Sidebar({ name, isAdmin, unread, usage }: { name: string; isAdmin: boolean; unread: number; usage: { used: number; limit: number; plan: string; resets: string } }) {
@@ -39,7 +40,7 @@ export function Sidebar({ name, isAdmin, unread, usage }: { name: string; isAdmi
         AI Publisher
       </Link>
       <ul className="flex-1 space-y-0.5 px-3">
-        {[...NAV, ...(isAdmin ? [{ href: '/admin', label: 'Publishing queue', icon: Shield }] : [])].map((item) => {
+        {[...NAV, ...(isAdmin ? [{ href: '/admin', label: 'Publishing queue', icon: Shield, exact: true }, { href: '/admin/support', label: 'Support inbox', icon: Inbox }] : [])].map((item) => {
           const active = 'exact' in item && item.exact ? path === item.href : path.startsWith(item.href);
           const Icon = item.icon;
           return (

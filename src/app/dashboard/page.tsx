@@ -14,7 +14,7 @@ export default async function Home() {
   const [books, usage, { data: activity }] = await Promise.all([
     listBooks(supabase, user.id),
     getUsage(user.id),
-    supabase.from('activity_logs').select('*').order('created_at', { ascending: false }).limit(8),
+    supabase.from('activity_logs').select('*').not('action', 'like', 'help.%').order('created_at', { ascending: false }).limit(8),
   ]);
   const urls = await signedCoverUrls(supabase, books.map((b) => b.cover_path));
   const plan = getPlan(profile.plan);

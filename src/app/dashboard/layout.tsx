@@ -1,6 +1,7 @@
 import { getViewer } from '@/lib/data';
 import { getUsage } from '@/lib/tokens';
 import { Sidebar } from '@/components/sidebar';
+import { HelpAssistant } from '@/components/help/assistant';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { supabase, user, profile } = await getViewer();
@@ -15,6 +16,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         usage={{ used: usage.tokensUsed, limit: usage.tokenLimit, plan: usage.planName, resets: usage.periodEnd }}
       />
       <main className="min-w-0 px-4 pb-16 pt-6 sm:px-8 lg:pt-10">{children}</main>
+      <HelpAssistant signedIn />
     </div>
   );
 }

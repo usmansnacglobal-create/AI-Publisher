@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { HelpAssistant } from '@/components/help/assistant';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -8,7 +9,11 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           AI Publisher
         </Link>
         <div className="panel p-6 sm:p-8">{children}</div>
+        <p className="mt-4 text-center text-[13px] text-ink-muted">
+          Need help? <Link href="/help" className="underline">Visit the Help Centre</Link>
+        </p>
       </div>
+      <HelpAssistant signedIn={false} />
     </main>
   );
 }

@@ -6,7 +6,7 @@ export const metadata = { title: 'Activity' };
 
 export default async function ActivityPage() {
   const { supabase } = await getViewer();
-  const { data } = await supabase.from('activity_logs').select('*').order('created_at', { ascending: false }).limit(300);
+  const { data } = await supabase.from('activity_logs').select('*').not('action', 'like', 'help.%').order('created_at', { ascending: false }).limit(300);
   const groups = new Map<string, NonNullable<typeof data>>();
   for (const a of data ?? []) {
     const k = new Date(a.created_at).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });

@@ -16,6 +16,7 @@ const LABELS: Record<string, (d: Record<string, unknown>) => string> = {
   'security.2fa_on': () => 'Turned on two-factor sign-in',
   'security.2fa_off': () => 'Turned off two-factor sign-in',
   'security.password': () => 'Changed password',
+  'support.message': (d) => `Sent a message to support (${d.topic})`,
 };
 
 export function describeActivity(action: string, details: Record<string, unknown>) {

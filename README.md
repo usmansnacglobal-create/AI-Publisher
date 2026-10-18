@@ -81,3 +81,10 @@ npm run typecheck && npm run lint && npm run build
 Key places: `src/lib/ai/` (Claude and OpenAI calls and prompts), `src/lib/tokens.ts` (metering and limits), `src/lib/plans.ts` (plans), `src/lib/export/` (PDF, EPUB, Word), `src/lib/canvas.ts` (cover rendering), `supabase/migrations/` (database).
 
 The print interior uses EB Garamond (SIL Open Font License), bundled in `src/assets/fonts`.
+
+## Help Centre and help assistant
+
+- Guides live in `src/lib/help/articles-*.ts`. Each guide has a short answer (what the assistant says), example questions, keywords and the full step-by-step text. Edit or add guides there and redeploy.
+- The help assistant (the **Help** button) answers from these guides only. It runs in the browser with no AI calls, so it costs nothing and uses no tokens.
+- Messages sent with **Contact support** appear in **Support inbox** (`/admin/support`) and as notifications for admins. The inbox also lists questions the assistant couldn't answer and guide ratings, so you can see which guides to improve.
+- `npm test` checks the assistant against a list of real-world questions (`tests/help.test.ts`). Add new phrasings there when you add guides.
