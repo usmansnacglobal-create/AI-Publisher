@@ -61,7 +61,7 @@ export default async function Landing({ searchParams }: { searchParams: { error_
           <ol className="mx-auto grid max-w-[1100px] gap-px px-4 sm:px-8 md:grid-cols-5">
             {STAGES.map(([t, d], i) => (
               <li key={t} className="py-8 md:pr-6">
-                <p className="text-[13px] text-gilt-ink">Step {i + 1}</p>
+                <p className="text-[13px] text-gilt">Step {i + 1}</p>
                 <h2 className="mt-1 text-[1.3rem]">{t}</h2>
                 <p className="mt-2 text-[14px] text-ink-muted">{d}</p>
               </li>

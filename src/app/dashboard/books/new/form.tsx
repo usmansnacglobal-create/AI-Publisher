@@ -450,7 +450,7 @@ function Wizard({ initial, defaultAuthor, onExit }: { initial: { step: number; d
                   <span>
                     <span className="block font-medium">{title}</span>
                     <span className="block text-[14px] text-ink-muted">{text}</span>
-                    <span className="mt-1 block text-[12px] text-gilt-ink">{best}</span>
+                    <span className="mt-1 block text-[12px] text-gilt">{best}</span>
                   </span>
                 </label>
               ))}

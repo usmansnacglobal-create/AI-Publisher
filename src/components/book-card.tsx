@@ -11,9 +11,9 @@ export function CoverThumb({ title, url, className = '' }: { title: string; url?
     // eslint-disable-next-line @next/next/no-img-element
     return <img src={url} alt="" className={`aspect-[2/3] w-full rounded-sm object-cover shadow-sm ${className}`} />;
   return (
-    <div className={`relative flex aspect-[2/3] w-full items-end overflow-hidden rounded-sm bg-[#2760B1] p-3 shadow-sm ${className}`}>
-      <div className="absolute inset-y-0 left-2 w-px bg-[#E16E1D]/70" />
-      <span className="line-clamp-4 font-serif text-[15px] leading-tight text-white">{title}</span>
+    <div className={`relative flex aspect-[2/3] w-full items-end overflow-hidden rounded-sm bg-[#2F5D50] p-3 shadow-sm ${className}`}>
+      <div className="absolute inset-y-0 left-2 w-px bg-[#A8833A]/60" />
+      <span className="line-clamp-4 font-serif text-[15px] leading-tight text-[#F3ECDD]">{title}</span>
     </div>
   );
 }
