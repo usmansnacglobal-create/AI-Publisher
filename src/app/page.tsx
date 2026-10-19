@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { PLANS } from '@/lib/plans';
+import { BrandMark } from '@/components/brand-mark';
+import { getBrand } from '@/lib/brand-server';
 
 const STAGES = [
   ['Write', 'Plan chapters from your idea, draft with Claude, or import the manuscript you already have. Every AI change is a suggestion you accept or reject.'],
@@ -10,14 +12,15 @@ const STAGES = [
   ['Publish', 'Store description, keywords and categories written for you. Submit once and follow your book through review to the stores.'],
 ];
 
-export default function Landing({ searchParams }: { searchParams: { error_code?: string; code?: string } }) {
+export default async function Landing({ searchParams }: { searchParams: { error_code?: string; code?: string } }) {
   // Expired or reused email links land here; send people somewhere that explains what to do.
   if (searchParams.error_code) redirect(`/login?error=${searchParams.error_code === 'otp_expired' ? 'expired' : 'link'}`);
   if (searchParams.code) redirect(`/auth/callback?code=${encodeURIComponent(searchParams.code)}`);
+  const brand = await getBrand();
   return (
     <div className="min-h-screen">
       <header className="mx-auto flex max-w-[1100px] items-center justify-between px-4 py-5 sm:px-8">
-        <span className="font-serif text-[1.35rem]">AI Publisher</span>
+        <BrandMark brand={brand} size="lg" />
         <nav className="flex items-center gap-4 text-[14px]">
           <Link href="/login" className="text-ink-soft hover:text-ink">Sign in</Link>
           <Link href="/signup" className="rounded bg-cloth px-4 py-2 font-medium text-white hover:bg-cloth-dark">Start free</Link>
@@ -81,7 +84,7 @@ export default function Landing({ searchParams }: { searchParams: { error_code?:
           </div>
         </section>
       </main>
-      <footer className="border-t border-line px-4 py-8 text-center text-[13px] text-ink-muted">© {new Date().getFullYear()} AI Publisher</footer>
+      <footer className="border-t border-line px-4 py-8 text-center text-[13px] text-ink-muted">© {new Date().getFullYear()} {brand.name}</footer>
     </div>
   );
 }

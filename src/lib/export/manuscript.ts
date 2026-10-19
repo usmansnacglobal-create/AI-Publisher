@@ -28,6 +28,8 @@ export interface ManuscriptChapter {
 }
 
 export interface Manuscript {
+  /** The publishing business, recorded as the PDF creator. */
+  creator?: string;
   title: string;
   subtitle: string;
   author: string;

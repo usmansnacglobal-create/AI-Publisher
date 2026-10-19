@@ -1,3 +1,4 @@
+import { getBrand } from '@/lib/brand-server';
 import { handle, json, requireUser, HttpError } from '@/lib/api';
 
 /** Sends a sample event to the author's automation webhook (Agency plan). */
@@ -9,7 +10,7 @@ export const POST = handle(async () => {
   const res = await fetch(p.webhook_url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ event: 'test', title: 'Test event from AI Publisher', at: new Date().toISOString() }),
+    body: JSON.stringify({ event: 'test', title: `Test event from ${(await getBrand()).name}`, at: new Date().toISOString() }),
     signal: AbortSignal.timeout(8000),
   }).catch(() => null);
   if (!res?.ok) throw new HttpError(502, `The webhook didn’t accept the test${res ? ` (status ${res.status})` : ''}. Check the address.`);

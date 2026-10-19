@@ -11,6 +11,8 @@ import { createClient } from '@/lib/supabase/client';
 import { compact } from '@/lib/text';
 import { Progress } from './ui';
 import { ThemeToggle } from './theme-picker';
+import { BrandMark } from './brand-mark';
+import { useBrand } from './brand-context';
 
 type Item = { href: string; label: string; icon: LucideIcon };
 type Group = { title: string; items: Item[] };
@@ -67,6 +69,7 @@ const ADMIN: Group = {
     { href: '/admin/print', label: 'Print orders (admin)', icon: Printer },
     { href: '/admin/sales', label: 'Sales data', icon: BarChart3 },
     { href: '/admin/system', label: 'System check', icon: Gauge },
+    { href: '/admin/branding', label: 'Branding', icon: Palette },
   ],
 };
 
@@ -88,6 +91,7 @@ const GROUP_KEY = 'ap-nav-closed';
 export function Sidebar({ name, isAdmin, unread, usage }: { name: string; isAdmin: boolean; unread: number; usage: { used: number; limit: number; plan: string; resets: string } }) {
   const path = usePathname();
   const router = useRouter();
+  const brand = useBrand();
   const [open, setOpen] = useState(false);
   const [closed, setClosed] = useState<string[]>([]);
   const pct = (usage.used / usage.limit) * 100;
@@ -140,8 +144,8 @@ export function Sidebar({ name, isAdmin, unread, usage }: { name: string; isAdmi
 
   const nav = (
     <nav className="flex h-full flex-col">
-      <Link href="/dashboard" className="px-5 pb-4 pt-6 font-serif text-[1.3rem]" onClick={() => setOpen(false)}>
-        AI Publisher
+      <Link href="/dashboard" className="block px-5 pb-4 pt-6" onClick={() => setOpen(false)}>
+        <BrandMark brand={brand} />
       </Link>
       <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-2">
         <ul className="space-y-0.5">{TOP.map(link)}</ul>
@@ -190,7 +194,7 @@ export function Sidebar({ name, isAdmin, unread, usage }: { name: string; isAdmi
   return (
     <>
       <div className="sticky top-0 z-30 flex items-center justify-between border-b border-line bg-ground/95 px-4 py-3 backdrop-blur lg:hidden">
-        <Link href="/dashboard" className="font-serif text-[1.15rem]">AI Publisher</Link>
+        <Link href="/dashboard" className="min-w-0"><BrandMark brand={brand} size="sm" /></Link>
         <button onClick={() => setOpen(true)} className="rounded p-1.5 hover:bg-ink/5" aria-label="Open menu">
           <Menu className="h-5 w-5" />
         </button>

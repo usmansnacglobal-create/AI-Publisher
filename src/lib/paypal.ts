@@ -1,5 +1,6 @@
 import 'server-only';
 import type { PlanId } from './plans';
+import { getBrand } from './brand-server';
 
 // PAYPAL_API_BASE is only for automated tests against a stand-in PayPal.
 const BASE = process.env.PAYPAL_API_BASE || (process.env.PAYPAL_ENV === 'live' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com');
@@ -78,14 +79,14 @@ export interface PayPalOrder {
   purchase_units?: { custom_id?: string; amount?: { value: string; currency_code: string }; payments?: { captures?: { id: string; status: string; amount: { value: string; currency_code: string } }[] } }[];
 }
 
-export const createPayPalOrder = (o: { total: number; currency: string; customId: string; description: string }) =>
+export const createPayPalOrder = async (o: { total: number; currency: string; customId: string; description: string }) =>
   call<PayPalOrder>('/v2/checkout/orders', {
     method: 'POST',
     headers: { 'PayPal-Request-Id': `print-${o.customId}` },
     body: JSON.stringify({
       intent: 'CAPTURE',
       purchase_units: [{ custom_id: o.customId, description: o.description.slice(0, 127), amount: { currency_code: o.currency, value: o.total.toFixed(2) } }],
-      application_context: { shipping_preference: 'NO_SHIPPING', brand_name: 'AI Publisher', user_action: 'PAY_NOW' },
+      application_context: { shipping_preference: 'NO_SHIPPING', brand_name: (await getBrand()).name.slice(0, 127), user_action: 'PAY_NOW' },
     }),
   });
 

@@ -67,7 +67,7 @@ async function renderOnce(m: Manuscript, trim: string, estimatedPages: number, t
     margins: { top: G.margin.top, bottom: G.margin.bottom, left: G.margin.inside, right: G.margin.outside },
     bufferPages: true,
     autoFirstPage: false,
-    info: { Title: m.title, Author: m.author, Creator: 'AI Publisher' },
+    info: { Title: m.title, Author: m.author, Creator: m.creator ?? 'AI Publisher' },
     lang: m.language,
   });
   const f = fontFiles(S.font);

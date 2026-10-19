@@ -8,6 +8,7 @@ import { api, errorText } from '@/lib/client';
 import { Badge, Button, Field, Modal, PageHeader } from '@/components/ui';
 import { useToast } from '@/components/toast';
 import { ThemePicker } from '@/components/theme-picker';
+import { useBrand } from '@/components/brand-context';
 
 type Profile = Record<string, unknown> & {
   id: string; full_name: string; pen_name: string; bio: string; website: string; twitter: string; linkedin: string; location: string; language: string;
@@ -16,6 +17,7 @@ type Profile = Record<string, unknown> & {
 const TABS = [['profile', 'Profile'], ['appearance', 'Appearance'], ['notifications', 'Notifications'], ['security', 'Security'], ['integrations', 'Automations'], ['danger', 'Delete account']] as const;
 
 export function Settings({ tab, profile, email, avatarUrl }: { tab: string; profile: Profile; email: string; avatarUrl: string | null }) {
+  const brand = useBrand();
   return (
     <div className="mx-auto max-w-[860px]">
       <PageHeader title="Settings" />
@@ -28,7 +30,7 @@ export function Settings({ tab, profile, email, avatarUrl }: { tab: string; prof
       {tab === 'appearance' && (
         <section className="panel space-y-3 p-5">
           <h2 className="text-[1.15rem]">Theme</h2>
-          <p className="text-[14px] text-ink-muted">Choose how AI Publisher looks on this device. Your book files, covers and exports aren’t affected.</p>
+          <p className="text-[14px] text-ink-muted">Choose how {brand.name} looks on this device. Your book files, covers and exports aren’t affected.</p>
           <ThemePicker />
         </section>
       )}
@@ -260,6 +262,7 @@ function SecurityTab() {
 }
 
 function IntegrationsTab({ profile }: { profile: Profile }) {
+  const brand = useBrand();
   const toast = useToast();
   const [url, setUrl] = useState(profile.webhook_url ?? '');
   const [busy, setBusy] = useState('');
@@ -267,7 +270,7 @@ function IntegrationsTab({ profile }: { profile: Profile }) {
     return (
       <div className="panel space-y-3 p-5">
         <h2 className="text-[1.15rem]">Automations</h2>
-        <p className="text-[14px] text-ink-muted">On the Agency plan, AI Publisher can notify Zapier, Make or your own systems when chapters finish, books are submitted or go live, so you can update a spreadsheet, message your team, or back up to Google Drive, Dropbox or Notion automatically.</p>
+        <p className="text-[14px] text-ink-muted">On the Agency plan, {brand.name} can notify Zapier, Make or your own systems when chapters finish, books are submitted or go live, so you can update a spreadsheet, message your team, or back up to Google Drive, Dropbox or Notion automatically.</p>
         <Link href="/dashboard/billing" className="inline-block text-[14px] font-medium text-cloth underline">See the Agency plan</Link>
       </div>
     );

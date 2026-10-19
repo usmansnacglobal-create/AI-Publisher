@@ -4,6 +4,7 @@ import type { createClient } from '../supabase/server';
 import { toBlocks, type Manuscript } from './manuscript';
 import { loadImages } from '../images';
 import { IMAGE_RE } from '../text';
+import { getBrand } from '../brand-server';
 
 /**
  * Gathers everything an export needs. Pass `images` to load the book's pictures:
@@ -23,6 +24,7 @@ export async function buildManuscript(
   const images = srcs.length ? await loadImages(book.user_id, book.id, srcs, opts.images) : undefined;
   const author = book.author_name || profile?.pen_name || profile?.full_name || 'Author';
   return {
+    creator: (await getBrand()).name,
     title: book.title,
     subtitle: book.subtitle,
     author,

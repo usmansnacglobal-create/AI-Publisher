@@ -9,6 +9,8 @@ import { rank, reply, type BotReply } from '@/lib/help/search';
 import { Button } from '@/components/ui';
 import { Inline, RichText } from './rich-text';
 import { sendHelpFeedback } from './centre-client';
+import { useBrand } from '@/components/brand-context';
+import { brandify } from '@/lib/brand';
 
 type Msg =
   | { id: number; from: 'user'; text: string }
@@ -21,6 +23,7 @@ const TOPICS = ['Writing and AI', 'Cover design', 'Layout and downloads', 'Audio
 let nextId = 1;
 
 export function HelpAssistant({ signedIn }: { signedIn: boolean }) {
+  const brand = useBrand();
   const path = usePathname() ?? '/';
   const base = signedIn && path.startsWith('/dashboard') ? '/dashboard/help' : '/help';
   const [open, setOpen] = useState(false);
@@ -131,7 +134,7 @@ export function HelpAssistant({ signedIn }: { signedIn: boolean }) {
             <>
               <div ref={listRef} className="flex-1 space-y-3 overflow-y-auto px-3 py-4" aria-live="polite">
                 <BotBubble>
-                  <p>Hi! I can help you find your way around AI Publisher. Type a question, or pick one below.</p>
+                  <p>Hi! I can help you find your way around {brand.name}. Type a question, or pick one below.</p>
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {starters.map((a) => (
                       <button key={a.slug} onClick={() => setMsgs((m) => [...m, { id: nextId++, from: 'user', text: a.title }, { id: nextId++, from: 'bot', reply: { kind: 'answer', article: a, also: [] } }])} className="rounded-full border border-line bg-sheet px-2.5 py-1 text-left text-[12.5px] text-ink-soft hover:border-cloth hover:text-cloth">
@@ -221,12 +224,13 @@ function BotBubble({ children }: { children: React.ReactNode }) {
 }
 
 function BotMessage({ msg, base, onPick, onContact, onVote }: { msg: Extract<Msg, { from: 'bot' }>; base: string; onPick: (a: HelpArticle) => void; onContact: () => void; onVote: (v: boolean) => void }) {
+  const brand = useBrand().name;
   const r = msg.reply;
   const [steps, setSteps] = useState(false);
   if (r.kind === 'text')
     return (
       <BotBubble>
-        <p>{r.text}</p>
+        <p>{brandify(r.text, brand)}</p>
         {r.contact && <Button size="sm" className="mt-2" onClick={onContact}>Message our team</Button>}
       </BotBubble>
     );
@@ -258,14 +262,14 @@ function BotMessage({ msg, base, onPick, onContact, onVote }: { msg: Extract<Msg
   return (
     <BotBubble>
       <p className="mb-1 text-[12px] font-semibold uppercase tracking-wide text-ink-muted">{a.title}</p>
-      <p><Inline text={a.answer} /></p>
+      <p><Inline text={brandify(a.answer, brand)} /></p>
       <button onClick={() => setSteps((s) => !s)} aria-expanded={steps} className="mt-2 flex items-center gap-1 text-[13px] font-medium text-cloth">
         <ChevronDown className={clsx('h-4 w-4 transition-transform', steps && 'rotate-180')} aria-hidden />
         {steps ? 'Hide the details' : 'Show the step-by-step guide'}
       </button>
       {steps && (
         <div className="mt-2 rounded-md border border-line bg-sheet p-3">
-          <RichText body={a.body} compact />
+          <RichText body={brandify(a.body, brand)} compact />
         </div>
       )}
       <div className="mt-2 flex flex-wrap gap-2">

@@ -5,6 +5,8 @@ import { ARTICLES, CATEGORIES, articlesIn, getArticle, getCategory, type HelpCat
 import { ButtonLink } from '@/components/ui';
 import { RichText, Inline } from './rich-text';
 import { HelpSearch, ArticleFeedback, AskButtons } from './centre-client';
+import { getBrand } from '@/lib/brand-server';
+import { brandify } from '@/lib/brand';
 
 const ICONS: Record<HelpCategory['icon'], typeof Rocket> = {
   start: Rocket, write: PenLine, check: SpellCheck, layout: BookOpenCheck, cover: Palette,
@@ -42,7 +44,9 @@ function StillStuck() {
   );
 }
 
-export function HelpHome({ base }: { base: string }) {
+export async function HelpHome({ base }: { base: string }) {
+  const b = (t: string) => brandify(t, brand);
+  const brand = (await getBrand()).name;
   return (
     <div className="mx-auto max-w-[980px]">
       <header className="mb-8 text-center">
@@ -58,7 +62,7 @@ export function HelpHome({ base }: { base: string }) {
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {POPULAR.map((s) => getArticle(s)!).map((a) => (
             <Link key={a.slug} href={`${base}/${a.slug}`} className="panel flex items-center justify-between gap-2 px-4 py-3 text-[14px] hover:border-line-strong">
-              <span className="text-ink">{a.title}</span>
+              <span className="text-ink">{b(a.title)}</span>
               <ArrowRight className="h-4 w-4 shrink-0 text-ink-faint" aria-hidden />
             </Link>
           ))}
@@ -82,7 +86,7 @@ export function HelpHome({ base }: { base: string }) {
                 </Link>
                 <ul className="mt-3 space-y-1 border-t border-line pt-3 text-[14px]">
                   {list.slice(0, 3).map((a) => (
-                    <li key={a.slug}><Link href={`${base}/${a.slug}`} className="text-ink-soft hover:text-cloth hover:underline">{a.title}</Link></li>
+                    <li key={a.slug}><Link href={`${base}/${a.slug}`} className="text-ink-soft hover:text-cloth hover:underline">{b(a.title)}</Link></li>
                   ))}
                 </ul>
                 <Link href={`${base}/c/${c.id}`} className="mt-auto pt-3 text-[13px] text-cloth underline">All {list.length} guides</Link>
@@ -96,7 +100,9 @@ export function HelpHome({ base }: { base: string }) {
   );
 }
 
-export function HelpCategoryView({ base, id }: { base: string; id: string }) {
+export async function HelpCategoryView({ base, id }: { base: string; id: string }) {
+  const b = (t: string) => brandify(t, brand);
+  const brand = (await getBrand()).name;
   const c = getCategory(id);
   if (!c) notFound();
   const Icon = ICONS[c.icon];
@@ -115,8 +121,8 @@ export function HelpCategoryView({ base, id }: { base: string; id: string }) {
           <li key={a.slug}>
             <Link href={`${base}/${a.slug}`} className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-ink/[.03]">
               <span>
-                <span className="block font-medium text-ink">{a.title}</span>
-                <span className="block text-[14px] text-ink-muted">{a.summary}</span>
+                <span className="block font-medium text-ink">{b(a.title)}</span>
+                <span className="block text-[14px] text-ink-muted">{b(a.summary)}</span>
               </span>
               <ChevronRight className="h-4 w-4 shrink-0 text-ink-faint" aria-hidden />
             </Link>
@@ -128,7 +134,9 @@ export function HelpCategoryView({ base, id }: { base: string; id: string }) {
   );
 }
 
-export function HelpArticleView({ base, slug, signedIn }: { base: string; slug: string; signedIn: boolean }) {
+export async function HelpArticleView({ base, slug, signedIn }: { base: string; slug: string; signedIn: boolean }) {
+  const b = (t: string) => brandify(t, brand);
+  const brand = (await getBrand()).name;
   const a = getArticle(slug);
   if (!a) notFound();
   const c = getCategory(a.category)!;
@@ -138,11 +146,11 @@ export function HelpArticleView({ base, slug, signedIn }: { base: string; slug: 
   return (
     <div className="mx-auto grid max-w-[1060px] gap-10 lg:grid-cols-[1fr_260px]">
       <article>
-        <Crumbs base={base} items={[{ label: c.title, href: `${base}/c/${c.id}` }, { label: a.title }]} />
-        <h1>{a.title}</h1>
+        <Crumbs base={base} items={[{ label: c.title, href: `${base}/c/${c.id}` }, { label: b(a.title) }]} />
+        <h1>{b(a.title)}</h1>
         <div className="mt-4 rounded-md border border-line bg-sheet px-4 py-3 text-[15px] text-ink">
           <p className="mb-1 text-[12px] font-semibold uppercase tracking-wide text-ink-muted">In short</p>
-          <Inline text={a.answer} />
+          <Inline text={b(a.answer)} />
         </div>
         {action && (
           <div className="mt-4">
@@ -150,7 +158,7 @@ export function HelpArticleView({ base, slug, signedIn }: { base: string; slug: 
           </div>
         )}
         <div className="mt-6">
-          <RichText body={a.body} />
+          <RichText body={b(a.body)} />
         </div>
         <ArticleFeedback slug={a.slug} signedIn={signedIn} />
         {related.length > 0 && (
@@ -159,7 +167,7 @@ export function HelpArticleView({ base, slug, signedIn }: { base: string; slug: 
             <div className="grid gap-2 sm:grid-cols-2">
               {related.map((r) => (
                 <Link key={r.slug} href={`${base}/${r.slug}`} className="panel px-4 py-3 hover:border-line-strong">
-                  <span className="block text-[14px] font-medium text-ink">{r.title}</span>
+                  <span className="block text-[14px] font-medium text-ink">{b(r.title)}</span>
                   <span className="block text-[13px] text-ink-muted">{r.summary}</span>
                 </Link>
               ))}
@@ -173,7 +181,7 @@ export function HelpArticleView({ base, slug, signedIn }: { base: string; slug: 
           <p className="mb-2 text-[13px] font-semibold text-ink-soft">More in {c.title}</p>
           <ul className="space-y-1.5 text-[14px]">
             {siblings.map((s) => (
-              <li key={s.slug}><Link href={`${base}/${s.slug}`} className="text-ink-muted hover:text-cloth hover:underline">{s.title}</Link></li>
+              <li key={s.slug}><Link href={`${base}/${s.slug}`} className="text-ink-muted hover:text-cloth hover:underline">{b(s.title)}</Link></li>
             ))}
           </ul>
           <p className="mb-2 mt-6 text-[13px] font-semibold text-ink-soft">Other topics</p>

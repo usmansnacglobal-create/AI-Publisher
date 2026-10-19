@@ -3,9 +3,11 @@ import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button, Field } from '@/components/ui';
+import { useBrand } from '@/components/brand-context';
 
 function Verify() {
   const params = useSearchParams();
+  const brand = useBrand();
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -25,7 +27,7 @@ function Verify() {
   return (
     <form onSubmit={submit} className="space-y-4">
       <h1 className="text-[1.6rem]">Enter your code</h1>
-      <p className="text-ink-muted">Open your authenticator app and enter the 6-digit code for AI Publisher.</p>
+      <p className="text-ink-muted">Open your authenticator app and enter the 6-digit code for {brand.name}.</p>
       <Field label="Code" htmlFor="code" error={error}>
         <input id="code" className="field tracking-[0.3em]" inputMode="numeric" autoComplete="one-time-code" maxLength={6} required value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} />
       </Field>

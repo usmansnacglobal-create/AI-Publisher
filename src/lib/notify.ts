@@ -1,5 +1,6 @@
 import 'server-only';
 import { createAdminClient } from './supabase/admin';
+import { getBrand } from './brand-server';
 
 type Category = 'books' | 'ai' | 'billing' | 'system';
 /** Which notification preference governs each kind of message. */
@@ -45,7 +46,7 @@ export async function notify(
       method: 'POST',
       headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        from: process.env.EMAIL_FROM ?? 'AI Publisher <noreply@example.com>',
+        from: process.env.EMAIL_FROM ?? `${(await getBrand()).name} <noreply@example.com>`,
         to: profile.email,
         subject: opts.title,
         text: `${opts.body ?? ''}${opts.link ? `\n\nOpen: ${site}${opts.link}` : ''}`,

@@ -5,6 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { getArticle } from '@/lib/help';
 import { timeAgo } from '@/lib/activity';
 import { Badge } from '@/components/ui';
+import { getBrand } from '@/lib/brand-server';
 
 export const metadata = { title: 'Support inbox' };
 export const dynamic = 'force-dynamic';
@@ -15,6 +16,7 @@ export default async function SupportInbox() {
   const { profile } = await getViewer();
   if (profile.role !== 'admin') notFound();
   const admin = createAdminClient();
+  const brand = await getBrand();
   const since = new Date(Date.now() - 60 * 86400_000).toISOString();
   const [{ data: messages }, { data: feedback }] = await Promise.all([
     admin.from('activity_logs').select('*').eq('action', 'support.message').order('created_at', { ascending: false }).limit(100),
@@ -64,7 +66,7 @@ export default async function SupportInbox() {
                   <p className="whitespace-pre-wrap text-[14px] text-ink">{String(m.details.message)}</p>
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[13px]">
                     <span className="text-ink-muted">Sent from {String(m.details.page || 'unknown page')}</span>
-                    <a href={`mailto:${email}?subject=${encodeURIComponent(`Re: ${String(m.details.topic)} (AI Publisher support)`)}`} className="rounded border border-line-strong px-3 py-1 hover:border-ink-faint">Reply by email</a>
+                    <a href={`mailto:${email}?subject=${encodeURIComponent(`Re: ${String(m.details.topic)} (${brand.name} support)`)}`} className="rounded border border-line-strong px-3 py-1 hover:border-ink-faint">Reply by email</a>
                   </div>
                 </li>
               );

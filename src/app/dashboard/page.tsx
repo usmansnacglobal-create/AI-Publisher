@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { getViewer, listBooks, signedCoverUrls } from '@/lib/data';
 import { getUsage } from '@/lib/tokens';
+import { getBrand } from '@/lib/brand-server';
 import { describeActivity, timeAgo } from '@/lib/activity';
 import { compact, formatNumber } from '@/lib/text';
 import { getPlan } from '@/lib/plans';
@@ -10,6 +11,7 @@ import { ButtonLink, Empty } from '@/components/ui';
 export const metadata = { title: 'Home' };
 
 export default async function Home() {
+  const brand = await getBrand();
   const { supabase, user, profile } = await getViewer();
   const [books, usage, { data: activity }] = await Promise.all([
     listBooks(supabase, user.id),
@@ -66,7 +68,7 @@ export default async function Home() {
             </div>
           ) : (
             <Empty title="Start your first book" action={<ButtonLink href="/dashboard/books/new">New book</ButtonLink>}>
-              Describe your idea and AI Publisher plans the chapters with you. Or import a manuscript you’ve already written.
+              Describe your idea and {brand.name} plans the chapters with you. Or import a manuscript you’ve already written.
             </Empty>
           )}
           {books.length > 6 && (
