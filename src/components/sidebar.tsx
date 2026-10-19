@@ -66,6 +66,7 @@ const ADMIN: Group = {
     { href: '/admin/support', label: 'Support inbox', icon: Inbox },
     { href: '/admin/print', label: 'Print orders (admin)', icon: Printer },
     { href: '/admin/sales', label: 'Sales data', icon: BarChart3 },
+    { href: '/admin/system', label: 'System check', icon: Gauge },
   ],
 };
 
