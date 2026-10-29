@@ -33,6 +33,8 @@ const securityHeaders = [
   { key: 'X-Frame-Options', value: 'DENY' },
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
   { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+  // Search indexing is off: every page, file and API response tells search engines not to index it.
+  { key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive, nosnippet' },
 ];
 
 const nextConfig = {

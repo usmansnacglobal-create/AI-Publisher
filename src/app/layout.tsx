@@ -13,6 +13,8 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: { default: brand.name, template: `%s · ${brand.name}` },
     description: brand.tagline || 'Write, edit, format, design and publish your book in one place, with AI help at every step.',
+    // Keep the app out of search engines (see also the X-Robots-Tag header in next.config.mjs).
+    robots: { index: false, follow: false, nocache: true, googleBot: { index: false, follow: false } },
     ...(brand.hasIcon ? { icons: { icon: `/brand/icon?v=${brand.version}`, apple: `/brand/icon?v=${brand.version}` } } : {}),
   };
 }

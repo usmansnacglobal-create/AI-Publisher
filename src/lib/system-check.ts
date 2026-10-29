@@ -61,7 +61,7 @@ export async function runSystemCheck(): Promise<CheckResult[]> {
     out.push({ group, label, level, ok: !missing.length, detail: missing.length ? `Not set: ${missing.join(', ')}. ${what}` : 'Set.', fix: missing.length ? fix : undefined });
   };
   key('Core', 'Supabase connection', ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY'], 'required', 'The site can’t work without these.', 'Add them in Vercel → Settings → Environment Variables, then redeploy.');
-  key('Core', 'Site address', ['NEXT_PUBLIC_SITE_URL'], 'optional', 'Links in emails use it.', 'Add NEXT_PUBLIC_SITE_URL (e.g. https://ai-publisher-delta.vercel.app) in Vercel, then redeploy.');
+  key('Core', 'Site address', ['NEXT_PUBLIC_SITE_URL'], 'optional', 'Links in emails use it.', 'Add NEXT_PUBLIC_SITE_URL (e.g. https://ai.ordwick.com) in Vercel, then redeploy.');
   key('AI', 'Claude (writing, editing, proofreading)', ['ANTHROPIC_API_KEY'], 'required', 'All AI writing and editing is switched off until it’s added.', 'Create a key at console.anthropic.com, add ANTHROPIC_API_KEY in Vercel, then redeploy.');
   key('AI', 'ChatGPT (covers, illustrations, basic narration)', ['OPENAI_API_KEY'], 'required', 'AI covers, AI images and basic audiobook voices are switched off until it’s added.', 'Create a key at platform.openai.com, add OPENAI_API_KEY in Vercel, then redeploy.');
   key('AI', 'ElevenLabs (premium narration)', ['ELEVENLABS_API_KEY'], 'optional', 'Premium narration is switched off; basic voices still work.', 'Create an API key at elevenlabs.io (Developers → API keys), add ELEVENLABS_API_KEY in Vercel, then redeploy. Use a paid ElevenLabs plan (Starter or above): library voices aren’t available through the API on the free plan.');
