@@ -186,7 +186,7 @@ The reason is shown on the Publish tab. If you can address it, make the changes 
     title: 'What AI tokens are and what uses them',
     summary: 'Your monthly AI allowance, explained.',
     answer:
-      'AI tokens measure how much AI work you do. Writing, editing, proofreading, planning, cover artwork and narration all use them, roughly in proportion to the amount of text. Free includes 30,000 a month, Pro 500,000 and Agency 2,000,000. See exactly where they went on the **Credits & AI Tokens** page.',
+      'AI tokens measure how much AI work you do. Writing, editing, proofreading, planning, cover artwork and basic narration all use them, roughly in proportion to the amount of text. Premium narration uses separate narration credits. Free includes 30,000 a month, Pro 500,000 and Agency 2,000,000. See exactly where they went on the **Credits & AI Tokens** page.',
     questions: ['how much ai do i have left', 'how many tokens are left', 'check my remaining tokens', 'what are tokens', 'how many tokens do i have', 'what uses tokens', 'how much does a chapter cost in tokens', 'token usage', 'ai credits', 'how many words can i write', 'where did my tokens go'],
     keywords: ['left', 'remaining', 'tokens', 'token', 'credits', 'allowance', 'usage', 'quota', 'limit', 'ai', 'words', 'monthly', 'consume', 'cost'],
     action: { label: 'See Credits & AI Tokens', href: '/dashboard/usage' },
@@ -204,7 +204,7 @@ Unused tokens don't carry over. Your allowance resets each billing cycle; the da
 ### What uses the most
 - Writing whole chapters, writing the whole book and rewriting the whole book
 - Cover artwork (image tokens count three times)
-- Audiobook narration (counts twice)
+- Basic audiobook narration (counts twice). Premium narration uses narration credits instead of tokens.
 
 ### What doesn't use tokens
 Typing and formatting, the layout preview and downloads, designing the cover lettering, publishing steps you fill in yourself, and this Help assistant.
@@ -235,20 +235,23 @@ There aren't separate token top-ups. To get more now, upgrade: Pro has 500,000 a
     slug: 'upgrade',
     category: 'billing',
     title: 'Upgrading or changing your plan',
-    summary: 'Pay with PayPal or a card.',
+    summary: 'Pay by card or PayPal, in pounds or dollars.',
     answer:
-      'Go to **Billing & Subscriptions**, choose the plan and pay with PayPal or a card through the PayPal button. The new plan starts straight away, with its full token allowance and tools.',
+      'Go to **Billing & Subscriptions**, choose pounds or dollars, then choose the plan and pay **by card** (through Stripe) or **with PayPal**. The new plan starts straight away, with its full token allowance and tools.',
     questions: ['how do i upgrade', 'upgrade to pro', 'upgrade to agency', 'change my plan', 'switch plan', 'pay for a plan', 'how do i pay', 'can i pay by card', 'payment methods', 'buy pro'],
     keywords: ['upgrade', 'change', 'switch', 'plan', 'pay', 'payment', 'paypal', 'card', 'credit', 'debit', 'buy', 'subscribe', 'subscription'],
     action: { label: 'Go to Billing & Subscriptions', href: '/dashboard/billing' },
     related: ['plans-compared', 'cancel-plan', 'payment-failed', 'receipts'],
     pages: ['billing'],
     body: `1. Open **Billing & Subscriptions** in the sidebar.
-2. Under the plan you want, click **Upgrade to Pro** or **Upgrade to Agency** (or **Switch to …**).
-3. Pay with your PayPal account or a debit or credit card in the PayPal window.
-4. You'll see **Welcome to Pro** (or Agency) when it's confirmed.
+2. At the top, choose **British pounds** or **US dollars**.
+3. Under the plan you want, click **Upgrade to Pro** or **Upgrade to Agency** (or **Switch to …**).
+4. Choose **Pay by card** (Stripe) or **Pay with PayPal**, and finish on their secure page.
+5. You come straight back and see the plan confirmed.
 
-Payments are handled securely by PayPal; we never see your card details. Plans renew monthly until you cancel.`,
+Payments are handled securely by Stripe and PayPal; we never see your card details. Plans renew monthly until you cancel. While you have a subscription, its currency stays the same.
+
+Audiobook narration with premium voices is a separate **narration add-on** on the same page.`,
   },
   {
     slug: 'cancel-plan',
@@ -272,22 +275,25 @@ Payments are handled securely by PayPal; we never see your card details. Plans r
 - Pro tools (story bible, proofreading, print PDF, cover designer, audiobook, publishing) are locked until you upgrade again.
 - You can't create new books beyond the Free limit, but you can keep working on the ones you have.
 
+Your narration add-on is separate: cancel it with **Cancel add-on** in the narration section. Top-up credits stay with you.
+
 For refund questions, please contact support.`,
   },
   {
     slug: 'payment-failed',
     category: 'billing',
     title: 'A payment didn’t go through',
-    summary: 'Update your payment method in PayPal to keep your plan.',
+    summary: 'Update your card or PayPal payment method to keep your plan.',
     answer:
-      'If a renewal fails you’ll see a notice on **Billing & Subscriptions** and get a notification. Update your payment method in your PayPal account so PayPal can retry; if it can’t, the plan moves to Free and you can upgrade again any time.',
+      'If a renewal fails you’ll see a notice on **Billing & Subscriptions** and get a notification. If you pay by card, click **Update card & invoices**; if you pay with PayPal, update your payment method in PayPal. If the payment still can’t be taken, the plan moves to Free and you can upgrade again any time.',
     questions: ['payment failed', 'my payment did not go through', 'card declined', 'paypal error', 'update payment method', 'change my card'],
     keywords: ['payment', 'failed', 'declined', 'card', 'paypal', 'update', 'method', 'renewal', 'error'],
     action: { label: 'Go to Billing & Subscriptions', href: '/dashboard/billing' },
     related: ['upgrade', 'receipts'],
     pages: ['billing'],
     body: `- **At checkout**: if PayPal couldn't complete the payment, nothing was charged. Try again or use a different card.
-- **At renewal**: you'll see "Your last payment didn't go through." Sign in to PayPal, go to your automatic payments and update the card or bank account linked to AI Publisher.
+- **At renewal, by card**: you'll see "Your last payment didn't go through." Click **Update card & invoices** on Billing & Subscriptions and add a new card; Stripe retries the payment.
+- **At renewal, with PayPal**: sign in to PayPal, go to your automatic payments and update the card or bank account linked to AI Publisher.
 
 If the payment still can't be taken, your plan moves to Free. Your books are kept, and you can upgrade again whenever you like.`,
   },
@@ -297,13 +303,14 @@ If the payment still can't be taken, your plan moves to Free. Your books are kep
     title: 'Receipts and billing history',
     summary: 'Where to find past payments.',
     answer:
-      'Your payments are listed under **Billing history** on the **Billing & Subscriptions** page. PayPal also emails you a receipt for every payment.',
+      'Your payments are listed under **Billing history** on the **Billing & Subscriptions** page. Stripe or PayPal also emails you a receipt for every payment; card invoices are under **Update card & invoices**.',
     questions: ['where are my receipts', 'invoice', 'billing history', 'payment history', 'proof of payment', 'vat invoice'],
     keywords: ['receipt', 'receipts', 'invoice', 'invoices', 'billing', 'history', 'payments', 'vat'],
     action: { label: 'Go to Billing & Subscriptions', href: '/dashboard/billing' },
     related: ['upgrade', 'payment-failed'],
     pages: ['billing'],
     body: `- **Billing & Subscriptions → Billing history** lists every payment with its date, description and amount.
+- Stripe (card payments) emails a receipt for each payment; click **Update card & invoices** to download invoices.
 - PayPal sends a receipt by email for each payment, and keeps them in your PayPal account.
 
 For a formal invoice, contact support.`,

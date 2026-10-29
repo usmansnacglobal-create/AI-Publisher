@@ -1,3 +1,5 @@
+import { MAIN_PLAN_PRICES, type Currency } from './pricing';
+
 export type PlanId = 'free' | 'pro' | 'agency';
 
 /** Paid tools. Free authors can write, use AI assist and export ebooks. */
@@ -9,14 +11,15 @@ export const FEATURE_NAMES: Record<Feature, string> = {
   print: 'Print-ready PDF interiors',
   cover: 'The AI cover designer',
   publish: 'The publishing kit and submission',
-  audiobook: 'AI audiobook narration',
+  audiobook: 'Basic AI audiobook narration',
   automations: 'Automations',
 };
 
 export interface Plan {
   id: PlanId;
   name: string;
-  priceMonthly: number;
+  /** Monthly price in each currency (0 for Free). */
+  prices: Record<Currency, number>;
   /** null = unlimited */
   bookLimit: number | null;
   monthlyTokens: number;
@@ -32,7 +35,7 @@ export const PLANS: Record<PlanId, Plan> = {
   free: {
     id: 'free',
     name: 'Free',
-    priceMonthly: 0,
+    prices: { USD: 0, GBP: 0 },
     bookLimit: 1,
     monthlyTokens: 30_000,
     coverRunsPerBook: 0,
@@ -43,7 +46,7 @@ export const PLANS: Record<PlanId, Plan> = {
   pro: {
     id: 'pro',
     name: 'Pro',
-    priceMonthly: 29,
+    prices: MAIN_PLAN_PRICES.pro,
     bookLimit: 10,
     monthlyTokens: 500_000,
     coverRunsPerBook: 3,
@@ -58,13 +61,13 @@ export const PLANS: Record<PlanId, Plan> = {
       'AI cover designer',
       'Publishing kit and submission',
       '3 AI cover runs per book',
-      'AI audiobook narration',
+      'Basic audiobook narration (5 voices)',
     ],
   },
   agency: {
     id: 'agency',
     name: 'Agency',
-    priceMonthly: 79,
+    prices: MAIN_PLAN_PRICES.agency,
     bookLimit: null,
     monthlyTokens: 2_000_000,
     coverRunsPerBook: 10,

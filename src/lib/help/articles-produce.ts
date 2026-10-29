@@ -354,40 +354,78 @@ If the warning says "fine for ebooks, may look slightly soft in print", the eboo
     slug: 'audiobook',
     category: 'audio',
     title: 'Creating an audiobook',
-    summary: 'Choose a narrator voice and narrate every chapter as MP3 files.',
+    summary: 'Choose a narrator and narrate every chapter as MP3 files.',
     answer:
-      'Open the **Audiobook** tab, choose a narrator voice (click the speaker icon to hear a sample), then click **Narrate the whole book** or narrate chapters one by one. Each chapter becomes an MP3 you can play or **Download all**. Narration uses AI tokens. Pro and Agency plans.',
+      'Open the **Audiobook** tab and choose **Premium voices** (hundreds of ElevenLabs voices, using narration credits from a narration add-on, on any plan) or **Basic voices** (five voices included with Pro and Agency, using AI tokens). Pick a narrator, then click **Narrate the whole book** or narrate chapters one by one.',
     questions: ['how do i make an audiobook', 'create audiobook', 'narrate my book', 'text to speech', 'audio version of my book', 'can ai read my book', 'audiobook voice'],
     keywords: ['audiobook', 'audio', 'narrate', 'narration', 'narrator', 'voice', 'mp3', 'listen', 'speech', 'tts', 'read', 'aloud'],
-    related: ['audiobook-voices', 'audiobook-outdated', 'audiobook-stores'],
+    related: ['audiobook-voices', 'narration-addon', 'audiobook-outdated', 'audiobook-stores'],
     pages: ['audiobook'],
     body: `1. Open your book and click **Audiobook**.
-2. Choose a **narrator voice**. Click the speaker icon next to a voice to hear it read the opening of your first chapter (this uses a few AI tokens).
-3. Click **Narrate the whole book**, or use **Narrate** next to a single chapter. Keep the page open while it works.
-4. Play each chapter on the page, or click **Download all** to get the MP3 files.
+2. Choose the kind of narrator:
+   - **Premium voices**: natural, expressive voices from the ElevenLabs library. Narration uses **narration credits** from a narration add-on (any plan can add one on **Billing & Subscriptions**).
+   - **Basic voices**: five voices included with the Pro and Agency plans. Narration uses AI tokens.
+3. For premium voices, click **Browse the voice library**, listen to samples and click **Use this voice**. Choose **Turbo** or, with Narration Pro, **Standard** quality.
+4. Click **Narrate the whole book**, or use **Narrate** next to a single chapter. Keep the page open while it works.
+5. Play each chapter on the page, or click **Download all** to get the MP3 files.
 
-The panel shows how many chapters are narrated, the total length and roughly how many tokens the rest will use.
-
-The audiobook is part of the Pro and Agency plans.`,
+The panel shows how many chapters are narrated, the total length and roughly how many credits (or tokens) the rest will use. If a chapter fails to narrate, its credits are given back.`,
   },
   {
     slug: 'audiobook-voices',
     category: 'audio',
     title: 'Narrator voices',
-    summary: 'The five voices and how to change them.',
+    summary: 'The premium voice library, the five basic voices, and changing narrator.',
     answer:
-      'There are five voices: **American male (formal)**, **American female (warm)**, **British male**, **British female** and **Neutral**. Click the speaker icon to hear a sample. If you change voice later, chapters narrated in the old voice show **Outdated** and can be re-narrated.',
-    questions: ['what voices are available', 'which voices can narrate', 'what voices are there', 'change narrator voice', 'british accent', 'american accent', 'male or female voice', 'hear a sample voice'],
-    keywords: ['voice', 'voices', 'narrator', 'accent', 'british', 'american', 'male', 'female', 'neutral', 'sample'],
-    related: ['audiobook', 'audiobook-outdated'],
+      'Premium voices come from the ElevenLabs library: browse by group (such as narration and stories), filter by accent, gender, age and language, and play free samples. Basic voices are **American male (formal)**, **American female (warm)**, **British male**, **British female** and **Neutral**. If you change narrator later, chapters narrated in the old voice show **Outdated**.',
+    questions: ['what voices are available', 'which voices can narrate', 'what voices are there', 'change narrator voice', 'british accent', 'american accent', 'male or female voice', 'hear a sample voice', 'voice library', 'scottish voice', 'more voices'],
+    keywords: ['voice', 'voices', 'narrator', 'accent', 'british', 'american', 'male', 'female', 'neutral', 'sample', 'library', 'elevenlabs', 'premium'],
+    related: ['audiobook', 'narration-addon', 'audiobook-outdated'],
     pages: ['audiobook'],
-    body: `- **American male (formal)**: clear, authoritative, suits non-fiction.
+    body: `### Premium voices (narration add-on)
+- Click **Browse the voice library** (or **Change voice**) on the Audiobook tab.
+- The library is grouped, for example **Narration & stories** and **Informative & educational**. Search for words like "warm" or "Scottish", or filter by accent, gender, age and language.
+- Click **Sample** to listen. Samples are free and don't use credits.
+- Click **Use this voice** to make it this book's narrator.
+
+### Basic voices (Pro and Agency)
+- **American male (formal)**: clear, authoritative, suits non-fiction.
 - **American female (warm)**: engaging and approachable, great for self-help.
 - **British male**: distinguished, ideal for literary fiction.
 - **British female**: elegant and expressive, suits most genres.
 - **Neutral**: accent-neutral, works for any genre.
 
-The voice is saved for the book and used for the audiobook format when you publish.`,
+The narrator is saved for the book and used for the audiobook format when you publish.`,
+  },
+  {
+    slug: 'narration-addon',
+    category: 'audio',
+    title: 'Premium narration: add-ons, Turbo or Standard, and top-ups',
+    summary: 'How premium narration is paid for, Turbo vs Standard, and buying more.',
+    answer:
+      'Premium narration uses **narration credits**: **Turbo** uses 1 credit per character and **Standard** uses 2. A narration add-on gives a monthly allowance (Starter 100,000, Author 300,000, Pro 600,000); Standard quality is part of **Narration Pro**. Monthly credits reset with each payment; **top-ups** add 100,000 credits that never expire.',
+    questions: ['what are narration credits', 'how many narration credits does a chapter need', 'turbo or standard', 'difference between turbo and standard', 'buy more narration credits', 'extra narration credits', 'ran out of narration credits', 'narration add on', 'how much is narration', 'premium narration price'],
+    keywords: ['narration', 'turbo', 'standard', 'topup', 'add-on', 'addon', 'elevenlabs', 'premium', 'quality', 'hours'],
+    action: { label: 'See narration add-ons', href: '/dashboard/billing' },
+    related: ['audiobook', 'audiobook-voices', 'upgrade'],
+    pages: ['audiobook', 'billing', 'usage'],
+    body: `### How credits are used
+- **Turbo**: 1 credit per character of your chapter. Natural and expressive.
+- **Standard**: 2 credits per character. Studio quality with the richest emotion. Part of **Narration Pro**.
+- About 900 characters make a minute of audio, so 100,000 credits are roughly 2 hours in Turbo.
+
+### Narration add-ons (monthly, on any plan)
+- **Narration Starter**: 100,000 credits a month, Turbo.
+- **Narration Author**: 300,000 credits a month (about a full novel), Turbo.
+- **Narration Pro**: 600,000 credits a month, Turbo or Standard.
+
+Monthly credits reset each time the add-on renews and don't carry over. Prices are shown in pounds or dollars on **Billing & Subscriptions**.
+
+### Top-ups
+A top-up adds 100,000 credits for a one-off payment. Top-up credits are used after your monthly credits and **never expire**. Without an add-on, top-up credits narrate in Turbo.
+
+### If something goes wrong
+Credits are taken only when a chapter's audio is saved. If narration fails, the credits are given back automatically. You'll get a notification at 80% and 100% of your monthly credits.`,
   },
   {
     slug: 'audiobook-outdated',
@@ -395,7 +433,7 @@ The voice is saved for the book and used for the audiobook format when you publi
     title: 'Why a chapter says “Outdated”',
     summary: 'Re-narrate chapters after editing the text or changing voice.',
     answer:
-      '“Outdated” means the chapter text or the narrator voice changed after it was narrated. Click **Re-narrate** on that chapter, or **Narrate the N remaining** to update all of them.',
+      '“Outdated” means the chapter text, the narrator or the quality changed after it was narrated. Click **Re-narrate** on that chapter, or **Narrate the N remaining** to update all of them.',
     questions: ['audiobook outdated', 'chapter says outdated', 'update audiobook after editing', 're narrate chapter'],
     keywords: ['outdated', 'renarrate', 're-narrate', 'update', 'audio', 'changed'],
     related: ['audiobook', 'audiobook-voices'],

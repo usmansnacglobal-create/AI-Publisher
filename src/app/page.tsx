@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 import { PLANS } from '@/lib/plans';
+import { NARRATION_TIERS, money, type Currency } from '@/lib/pricing';
 import { BrandMark } from '@/components/brand-mark';
 import { getBrand } from '@/lib/brand-server';
 
@@ -17,6 +19,8 @@ export default async function Landing({ searchParams }: { searchParams: { error_
   if (searchParams.error_code) redirect(`/login?error=${searchParams.error_code === 'otp_expired' ? 'expired' : 'link'}`);
   if (searchParams.code) redirect(`/auth/callback?code=${encodeURIComponent(searchParams.code)}`);
   const brand = await getBrand();
+  const country = headers().get('x-vercel-ip-country')?.toUpperCase() ?? '';
+  const currency: Currency = ['GB', 'GG', 'JE', 'IM'].includes(country) ? 'GBP' : 'USD';
   return (
     <div className="min-h-screen">
       <header className="mx-auto flex max-w-[1100px] items-center justify-between px-4 py-5 sm:px-8">
@@ -76,12 +80,15 @@ export default async function Landing({ searchParams }: { searchParams: { error_
             {Object.values(PLANS).map((p) => (
               <div key={p.id} className="panel flex flex-col p-6">
                 <h3 className="text-[1.3rem]">{p.name}</h3>
-                <p className="mt-2 font-serif text-[2.2rem] leading-none">${p.priceMonthly}<span className="ml-1 font-sans text-[14px] text-ink-muted">/ month</span></p>
+                <p className="mt-2 font-serif text-[2.2rem] leading-none">{money(p.prices[currency], currency)}<span className="ml-1 font-sans text-[14px] text-ink-muted">/ month</span></p>
                 <ul className="mt-4 flex-1 space-y-1.5 text-[14px] text-ink-soft">{p.features.map((f) => <li key={f}>{f}</li>)}</ul>
-                <Link href="/signup" className="mt-6 rounded border border-line-strong py-2 text-center font-medium hover:border-ink-faint">{p.priceMonthly ? `Choose ${p.name}` : 'Start free'}</Link>
+                <Link href="/signup" className="mt-6 rounded border border-line-strong py-2 text-center font-medium hover:border-ink-faint">{p.prices[currency] ? `Choose ${p.name}` : 'Start free'}</Link>
               </div>
             ))}
           </div>
+          <p className="mt-6 text-[14px] text-ink-muted">
+            Add premium audiobook narration to any plan from {money(NARRATION_TIERS.starter.prices[currency], currency)} a month, with hundreds of natural voices to choose from. Prices in {currency === 'GBP' ? 'pounds' : 'US dollars'}; pay by card or PayPal.
+          </p>
         </section>
       </main>
       <footer className="border-t border-line px-4 py-8 text-center text-[13px] text-ink-muted">© {new Date().getFullYear()} {brand.name}</footer>

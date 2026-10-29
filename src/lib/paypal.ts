@@ -1,5 +1,4 @@
 import 'server-only';
-import type { PlanId } from './plans';
 import { getBrand } from './brand-server';
 
 // PAYPAL_API_BASE is only for automated tests against a stand-in PayPal.
@@ -43,11 +42,48 @@ export const getSubscription = (id: string) => call<PayPalSubscription>(`/v1/bil
 export const cancelSubscription = (id: string, reason: string) =>
   call(`/v1/billing/subscriptions/${encodeURIComponent(id)}/cancel`, { method: 'POST', body: JSON.stringify({ reason }) });
 
-export function planForPayPalPlan(planId: string): PlanId | null {
-  if (planId && planId === process.env.NEXT_PUBLIC_PAYPAL_PLAN_PRO) return 'pro';
-  if (planId && planId === process.env.NEXT_PUBLIC_PAYPAL_PLAN_AGENCY) return 'agency';
-  return null;
+type Link = { href: string; rel: string };
+const approveLink = (links?: Link[]) => links?.find((l) => l.rel === 'approve' || l.rel === 'payer-action')?.href;
+
+/** Starts a subscription and returns the PayPal page where the author approves it. */
+export async function createSubscription(o: { planId: string; customId: string; returnUrl: string; cancelUrl: string }) {
+  const sub = await call<PayPalSubscription & { links?: Link[] }>('/v1/billing/subscriptions', {
+    method: 'POST',
+    body: JSON.stringify({
+      plan_id: o.planId,
+      custom_id: o.customId,
+      application_context: {
+        brand_name: (await getBrand()).name.slice(0, 127),
+        shipping_preference: 'NO_SHIPPING',
+        user_action: 'SUBSCRIBE_NOW',
+        return_url: o.returnUrl,
+        cancel_url: o.cancelUrl,
+      },
+    }),
+  });
+  const url = approveLink(sub.links);
+  if (!url) throw new Error('PayPal did not return an approval link.');
+  return { id: sub.id, url };
 }
+
+/** Creates the PayPal product that all plans belong to (once). */
+export const createPayPalProduct = (name: string) =>
+  call<{ id: string }>('/v1/catalogs/products', { method: 'POST', body: JSON.stringify({ name: name.slice(0, 127), type: 'SERVICE', category: 'SOFTWARE' }) });
+
+/** Creates a monthly PayPal billing plan in one currency. */
+export const createPayPalPlan = (o: { productId: string; name: string; amount: number; currency: string }) =>
+  call<{ id: string }>('/v1/billing/plans', {
+    method: 'POST',
+    body: JSON.stringify({
+      product_id: o.productId,
+      name: o.name.slice(0, 127),
+      status: 'ACTIVE',
+      billing_cycles: [
+        { frequency: { interval_unit: 'MONTH', interval_count: 1 }, tenure_type: 'REGULAR', sequence: 1, total_cycles: 0, pricing_scheme: { fixed_price: { value: o.amount.toFixed(2), currency_code: o.currency } } },
+      ],
+      payment_preferences: { auto_bill_outstanding: true, payment_failure_threshold: 1 },
+    }),
+  });
 
 /** Confirms a webhook really came from PayPal. */
 export async function verifyWebhook(headers: Headers, rawBody: string) {
@@ -77,16 +113,25 @@ export interface PayPalOrder {
   id: string;
   status: 'CREATED' | 'SAVED' | 'APPROVED' | 'VOIDED' | 'COMPLETED' | 'PAYER_ACTION_REQUIRED';
   purchase_units?: { custom_id?: string; amount?: { value: string; currency_code: string }; payments?: { captures?: { id: string; status: string; amount: { value: string; currency_code: string } }[] } }[];
+  links?: Link[];
 }
 
-export const createPayPalOrder = async (o: { total: number; currency: string; customId: string; description: string }) =>
+/** The page where the author approves a one-off payment (when the order was made with return links). */
+export const orderApprovalUrl = (o: PayPalOrder) => approveLink(o.links);
+
+export const createPayPalOrder = async (o: { total: number; currency: string; customId: string; description: string; returnUrl?: string; cancelUrl?: string; requestId?: string }) =>
   call<PayPalOrder>('/v2/checkout/orders', {
     method: 'POST',
-    headers: { 'PayPal-Request-Id': `print-${o.customId}` },
+    headers: { 'PayPal-Request-Id': o.requestId ?? `print-${o.customId}` },
     body: JSON.stringify({
       intent: 'CAPTURE',
       purchase_units: [{ custom_id: o.customId, description: o.description.slice(0, 127), amount: { currency_code: o.currency, value: o.total.toFixed(2) } }],
-      application_context: { shipping_preference: 'NO_SHIPPING', brand_name: (await getBrand()).name.slice(0, 127), user_action: 'PAY_NOW' },
+      application_context: {
+        shipping_preference: 'NO_SHIPPING',
+        brand_name: (await getBrand()).name.slice(0, 127),
+        user_action: 'PAY_NOW',
+        ...(o.returnUrl ? { return_url: o.returnUrl, cancel_url: o.cancelUrl ?? o.returnUrl } : {}),
+      },
     }),
   });
 

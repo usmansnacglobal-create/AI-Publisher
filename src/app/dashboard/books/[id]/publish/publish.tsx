@@ -7,7 +7,6 @@ import { ArrowLeft, ArrowRight, Check, Circle, Copy, Sparkles, X } from 'lucide-
 import type { Book } from '@/lib/api';
 import { api, errorText } from '@/lib/client';
 import { BISAC, EDITIONS, LANGUAGES, PLATFORMS, ebookRoyalty, minPrintPrice, printCost, printRoyalty, type PlatformId, suggestedPrintPrice } from '@/lib/publishing';
-import { VOICES, type VoiceId } from '@/lib/audiobook';
 import { normaliseLayout } from '@/lib/layout';
 import { TRIM_SIZES } from '@/lib/spine';
 import { Badge, Button, Field, PageHeader } from '@/components/ui';
@@ -269,7 +268,7 @@ export function Publish({ book, voice }: { book: Book; voice: string | null }) {
                   </div>
                   {d.formats.includes('audiobook') && (
                     <p className="text-[14px]">
-                      Narration voice: <strong>{voice ? VOICES[voice as VoiceId]?.label ?? voice : 'not chosen yet'}</strong>. <Link href={`/dashboard/books/${book.id}/audiobook`} className="text-cloth underline">Change on the Audiobook tab</Link>
+                      Narration voice: <strong>{voice ?? 'not chosen yet'}</strong>. <Link href={`/dashboard/books/${book.id}/audiobook`} className="text-cloth underline">Change on the Audiobook tab</Link>
                     </p>
                   )}
                 </>
@@ -402,7 +401,7 @@ export function Publish({ book, voice }: { book: Book; voice: string | null }) {
                     <dt className="text-ink-muted">Keywords</dt><dd>{d.keywords.join(', ')}</dd>
                     <dt className="text-ink-muted">Language and edition</dt><dd>{d.language}, {d.edition}</dd>
                     <dt className="text-ink-muted">Publishing</dt><dd>{d.when === 'later' && d.date ? new Date(d.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'As soon as it’s approved'}</dd>
-                    {d.formats.includes('audiobook') && <><dt className="text-ink-muted">Narration</dt><dd>{voice ? VOICES[voice as VoiceId]?.label : '—'}</dd></>}
+                    {d.formats.includes('audiobook') && <><dt className="text-ink-muted">Narration</dt><dd>{voice ?? '—'}</dd></>}
                     <dt className="text-ink-muted">Description</dt><dd className="whitespace-pre-wrap">{d.blurb}</dd>
                   </dl>
                   {!ready && <p className="text-[14px] text-danger">Some checklist items are still open. Go back to step 1 to finish them.</p>}

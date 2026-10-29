@@ -1,6 +1,7 @@
 import { normaliseLayout } from './layout';
 import { pageCountIssues } from './spine';
 import 'server-only';
+import { isTrackOutdated, type NarratorSettings, type StoredTrack } from './audiobook';
 import type { Book } from './api';
 import type { createClient } from './supabase/server';
 
@@ -56,11 +57,17 @@ export async function readiness(supabase: ReturnType<typeof createClient>, book:
   }
   if (formats.includes('audiobook')) {
     const [{ data: ab }, { data: chs }] = await Promise.all([
-      supabase.from('audiobooks').select('tracks, voice').eq('book_id', book.id).maybeSingle(),
+      supabase.from('audiobooks').select('tracks, voice, engine, premium_voice_id, quality').eq('book_id', book.id).maybeSingle(),
       supabase.from('chapters').select('id, updated_at, word_count').eq('book_id', book.id),
     ]);
-    const tracks = (ab?.tracks ?? {}) as Record<string, { generated_at: string; voice: string }>;
-    const missing = (chs ?? []).filter((c) => c.word_count > 0 && (!tracks[c.id] || new Date(c.updated_at) > new Date(tracks[c.id].generated_at) || tracks[c.id].voice !== ab?.voice)).length;
+    const tracks = (ab?.tracks ?? {}) as Record<string, StoredTrack>;
+    const settings: NarratorSettings = {
+      engine: ab?.engine === 'premium' ? 'premium' : 'basic',
+      voice: ab?.voice ?? '',
+      premium_voice_id: ab?.premium_voice_id ?? null,
+      quality: ab?.quality === 'standard' ? 'standard' : 'turbo',
+    };
+    const missing = (chs ?? []).filter((c) => c.word_count > 0 && (!tracks[c.id] || isTrackOutdated(tracks[c.id], c.updated_at, settings))).length;
     checks.push({ id: 'audio', label: 'Every chapter narrated', ok: !!ab && missing === 0, fix: `${missing || 'All'} chapter${missing === 1 ? '' : 's'} still to narrate.`, link: `${base}/audiobook` });
   }
   return checks;

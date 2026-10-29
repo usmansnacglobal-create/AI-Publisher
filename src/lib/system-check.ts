@@ -22,6 +22,7 @@ const MIGRATIONS: { file: string; checks: [string, string][] }[] = [
   { file: '0002_old_tool_features.sql', checks: [['books', 'author_name,layout,layout_approved_at'], ['cover_versions', 'id'], ['audiobooks', 'id,tracks'], ['chapters', 'settings,admin_note']] },
   { file: '0003_print_options.sql', checks: [['submissions', 'hardcover_price']] },
   { file: '0004_print_orders_and_analytics.sql', checks: [['print_orders', 'id,total,status'], ['sales', 'id,royalty'], ['app_settings', 'key,value'], ['submissions', 'store_links']] },
+  { file: '0005_narration_and_billing.sql', checks: [['profiles', 'currency,stripe_customer_id'], ['narration_accounts', 'user_id,topup_credits'], ['narration_usage', 'id,credits'], ['elevenlabs_voices', 'voice_id'], ['billing_catalog', 'item'], ['payments', 'provider,external_id'], ['audiobooks', 'engine,quality']] },
 ];
 
 const env = (k: string) => !!process.env[k]?.trim();
@@ -62,9 +63,11 @@ export async function runSystemCheck(): Promise<CheckResult[]> {
   key('Core', 'Supabase connection', ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY'], 'required', 'The site can’t work without these.', 'Add them in Vercel → Settings → Environment Variables, then redeploy.');
   key('Core', 'Site address', ['NEXT_PUBLIC_SITE_URL'], 'optional', 'Links in emails use it.', 'Add NEXT_PUBLIC_SITE_URL (e.g. https://ai-publisher-delta.vercel.app) in Vercel, then redeploy.');
   key('AI', 'Claude (writing, editing, proofreading)', ['ANTHROPIC_API_KEY'], 'required', 'All AI writing and editing is switched off until it’s added.', 'Create a key at console.anthropic.com, add ANTHROPIC_API_KEY in Vercel, then redeploy.');
-  key('AI', 'ChatGPT (covers, illustrations, narration)', ['OPENAI_API_KEY'], 'required', 'AI covers, AI images and audiobook narration are switched off until it’s added.', 'Create a key at platform.openai.com, add OPENAI_API_KEY in Vercel, then redeploy.');
+  key('AI', 'ChatGPT (covers, illustrations, basic narration)', ['OPENAI_API_KEY'], 'required', 'AI covers, AI images and basic audiobook voices are switched off until it’s added.', 'Create a key at platform.openai.com, add OPENAI_API_KEY in Vercel, then redeploy.');
+  key('AI', 'ElevenLabs (premium narration)', ['ELEVENLABS_API_KEY'], 'optional', 'Premium narration is switched off; basic voices still work.', 'Create an API key at elevenlabs.io (Developers → API keys), add ELEVENLABS_API_KEY in Vercel, then redeploy. Use a paid ElevenLabs plan (Starter or above): library voices aren’t available through the API on the free plan.');
+  key('Payments', 'Stripe (card payments)', ['STRIPE_SECRET_KEY'], 'optional', 'Authors can’t pay by card yet.', 'In Stripe → Developers → API keys, copy the secret key into STRIPE_SECRET_KEY in Vercel, then open Admin → Billing setup.');
+  key('Payments', 'Stripe webhook', ['STRIPE_WEBHOOK_SECRET'], 'optional', 'Card renewals, failed payments and cancellations won’t update subscriptions automatically.', 'See Admin → Billing setup for the webhook address and events, then put its signing secret in STRIPE_WEBHOOK_SECRET.');
   key('Payments', 'PayPal (plans and print orders)', ['NEXT_PUBLIC_PAYPAL_CLIENT_ID', 'PAYPAL_CLIENT_SECRET'], 'optional', 'Authors can’t pay for plans or print orders online yet.', 'Create a PayPal REST app, add its client ID and secret in Vercel, then redeploy.');
-  key('Payments', 'PayPal subscription plans', ['NEXT_PUBLIC_PAYPAL_PLAN_PRO', 'NEXT_PUBLIC_PAYPAL_PLAN_AGENCY'], 'optional', 'The upgrade buttons stay hidden.', 'Create Pro ($29) and Agency ($79) monthly plans in PayPal and add their plan IDs in Vercel.');
   key('Payments', 'PayPal webhook', ['PAYPAL_WEBHOOK_ID'], 'optional', 'Renewals, failed payments and cancellations made in PayPal won’t update plans automatically.', 'Add a webhook in your PayPal app pointing to /api/billing/paypal/webhook and put its ID in PAYPAL_WEBHOOK_ID.');
   out.push({
     group: 'Payments', label: 'PayPal mode', level: 'optional', ok: process.env.PAYPAL_ENV === 'live' || !env('PAYPAL_CLIENT_SECRET'),
@@ -73,6 +76,16 @@ export async function runSystemCheck(): Promise<CheckResult[]> {
   });
   key('Email', 'Email sending (Resend)', ['RESEND_API_KEY', 'EMAIL_FROM'], 'optional', 'Notifications appear in the app only, not by email.', 'Create a Resend account, verify your domain, add RESEND_API_KEY and EMAIL_FROM in Vercel.');
   key('Automation', 'Scheduled jobs', ['CRON_SECRET'], 'optional', 'The weekly progress email can’t run.', 'Add any long random text as CRON_SECRET in Vercel.');
+
+  // Prices created in Stripe and PayPal (Admin → Billing setup)
+  if (out.find((r) => r.label === '0005_narration_and_billing.sql')?.ok && (env('STRIPE_SECRET_KEY') || env('PAYPAL_CLIENT_SECRET'))) {
+    const { count } = await createAdminClient().from('billing_catalog').select('item', { count: 'exact', head: true });
+    out.push({
+      group: 'Payments', label: 'Plan prices in Stripe and PayPal', level: 'optional', ok: (count ?? 0) > 0,
+      detail: count ? `${count} prices set up.` : 'Not set up yet, so the pay buttons can’t start a payment.',
+      fix: count ? undefined : 'Open Admin → Billing setup and click “Set up missing prices”.',
+    });
+  }
 
   // Settings stored in the database
   if (out.find((r) => r.label === '0004_print_orders_and_analytics.sql')?.ok) {
