@@ -7,7 +7,7 @@ import { Loader2, X } from 'lucide-react';
 type BtnVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 const btn = (variant: BtnVariant, size: 'sm' | 'md') =>
   clsx(
-    'inline-flex items-center justify-center gap-2 rounded font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-55 whitespace-nowrap',
+    'inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-55 whitespace-nowrap',
     size === 'sm' ? 'h-8 px-3 text-[13px]' : 'h-10 px-4 text-[14px]',
     variant === 'primary' && 'bg-cloth text-white hover:bg-cloth-dark',
     variant === 'secondary' && 'border border-line-strong bg-sheet text-ink hover:border-ink-faint',

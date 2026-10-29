@@ -16,10 +16,10 @@ function useTheme() {
 }
 
 const SWATCH: Record<ThemeId, [string, string, string]> = {
-  system: ['#EEF0EC', '#14171C', '#2F5D50'],
-  light: ['#EEF0EC', '#FFFFFF', '#2F5D50'],
-  sepia: ['#EFE6D4', '#FBF6EB', '#2F5D50'],
-  dark: ['#14171C', '#1D2128', '#7DBFA8'],
+  system: ['#EEF0EC', '#14171C', '#D6247A'],
+  light: ['#EEF0EC', '#FFFFFF', '#D6247A'],
+  sepia: ['#EFE6D4', '#FBF6EB', '#D6247A'],
+  dark: ['#0F1629', '#151E36', '#FF4F9A'],
 };
 
 /** The full choice, used on the Settings page. */

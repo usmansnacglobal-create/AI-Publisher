@@ -19,8 +19,8 @@ export default {
         removed: { DEFAULT: 'rgb(var(--c-removed) / <alpha-value>)', bg: 'rgb(var(--c-removed-bg) / <alpha-value>)' },
       },
       fontFamily: {
-        sans: ['"Figtree Variable"', 'system-ui', 'sans-serif'],
-        serif: ['"Newsreader Variable"', 'Georgia', 'serif'],
+        sans: ['"Bricolage Grotesque Variable"', 'system-ui', 'sans-serif'],
+        serif: ['"Literata Variable"', 'Georgia', 'serif'],
       },
       borderRadius: { sm: '3px', DEFAULT: '5px', md: '7px', lg: '10px' },
       maxWidth: { prose: '68ch' },
