@@ -40,3 +40,35 @@ export function chunkText(text: string, max = 3800): string[] {
 export function estimateMinutes(chars: number) {
   return Math.max(1, Math.round(chars / 5.5 / 155));
 }
+
+/** The narrator a book is set to use. */
+export interface NarratorSettings {
+  engine: 'basic' | 'premium';
+  voice: string;
+  premium_voice_id: string | null;
+  quality: 'turbo' | 'standard';
+}
+
+/** A narrated chapter as stored. Older tracks (before premium voices) have no engine or quality. */
+export interface StoredTrack {
+  generated_at: string;
+  voice: string;
+  engine?: 'basic' | 'premium';
+  quality?: 'turbo' | 'standard';
+}
+
+/** True when the chapter changed, or the narrator or quality differs from the book's current choice. */
+export function isTrackOutdated(t: StoredTrack, chapterUpdatedAt: string, s: NarratorSettings) {
+  if (new Date(chapterUpdatedAt) > new Date(t.generated_at)) return true;
+  const engine = t.engine ?? 'basic';
+  if (engine !== s.engine) return true;
+  if (engine === 'basic') return t.voice !== s.voice;
+  return t.voice !== s.premium_voice_id || (t.quality ?? 'turbo') !== s.quality;
+}
+
+/** How the narrator is described to authors and the publishing team. */
+export function narratorLabel(ab: { engine?: string | null; voice?: string | null; premium_voice_name?: string | null; quality?: string | null } | null) {
+  if (!ab) return null;
+  if (ab.engine === 'premium') return ab.premium_voice_name ? `${ab.premium_voice_name} (premium, ${ab.quality === 'standard' ? 'Standard' : 'Turbo'})`.slice(0, 60) : null;
+  return ab.voice ? VOICES[ab.voice as VoiceId]?.label ?? ab.voice : null;
+}

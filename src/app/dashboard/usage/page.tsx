@@ -1,5 +1,7 @@
 import { getViewer } from '@/lib/data';
 import { getUsage } from '@/lib/tokens';
+import { getNarrationStatus } from '@/lib/narration';
+import { hoursFor } from '@/lib/pricing';
 import { FEATURE_LABELS } from '@/lib/plans';
 import { formatNumber } from '@/lib/text';
 import { ButtonLink, PageHeader, Progress } from '@/components/ui';
@@ -27,7 +29,7 @@ function Bars({ rows, total }: { rows: [string, number][]; total: number }) {
 
 export default async function UsagePage() {
   const { supabase, user } = await getViewer();
-  const u = await getUsage(user.id);
+  const [u, n] = await Promise.all([getUsage(user.id), getNarrationStatus(user.id)]);
   const { data: rows } = await supabase.from('token_usage').select('book_id, feature, total_tokens, created_at').gte('created_at', u.periodStart);
   const { data: books } = await supabase.from('books').select('id,title').eq('user_id', user.id);
   const sum = (key: (r: NonNullable<typeof rows>[number]) => string) => {
@@ -66,6 +68,29 @@ export default async function UsagePage() {
           </p>
         </div>
         <div className="mt-4"><Progress value={pct} tone={pct >= 100 ? 'danger' : pct >= 80 ? 'gilt' : 'cloth'} label="Tokens used" /></div>
+      </section>
+
+      <section className="panel mt-4 p-5">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="text-[1.15rem]">Narration credits</h2>
+          <ButtonLink href="/dashboard/billing" size="sm" variant="ghost">{n.canNarrate ? 'Buy more' : 'Add narration'}</ButtonLink>
+        </div>
+        {n.canNarrate ? (
+          <>
+            <p className="mt-2 font-serif text-[1.8rem] leading-none">{formatNumber(n.available)}<span className="ml-2 font-sans text-[15px] text-ink-muted">credits available · {hoursFor(n.available, 'turbo')} in Turbo</span></p>
+            {n.tier && (
+              <>
+                <div className="mt-4"><Progress value={(n.usedThisPeriod / Math.max(1, n.allowance)) * 100} tone={n.allowanceRemaining / Math.max(1, n.allowance) < 0.2 ? 'gilt' : 'cloth'} label="Monthly narration credits used" /></div>
+                <p className="mt-2 text-[14px] text-ink-muted">
+                  {n.tierName}: {formatNumber(n.allowanceRemaining)} of {formatNumber(n.allowance)} monthly credits left{n.periodEnd ? `, resetting ${new Date(n.periodEnd).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}` : ''}.
+                  {n.topupCredits > 0 ? ` Plus ${formatNumber(n.topupCredits)} top-up credits that don’t expire.` : ''}
+                </p>
+              </>
+            )}
+          </>
+        ) : (
+          <p className="mt-2 text-[14px] text-ink-muted">Premium audiobook narration uses credits from a narration add-on, separate from your AI tokens.</p>
+        )}
       </section>
 
       <section className="mt-8">

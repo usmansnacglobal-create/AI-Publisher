@@ -103,6 +103,11 @@ const CASES: [string, string][] = [
   ['which stores is my book in', 'distribution-channels'],
   ['where is content creation hub', 'dashboard-tour'],
   ['dashboard overview', 'dashboard-overview'],
+  ['how do i buy more narration credits', 'narration-addon'],
+  ['turbo or standard', 'narration-addon'],
+  ['can i get a narration top up', 'narration-addon'],
+  ['how do i pay by card', 'upgrade'],
+  ['can i pay in pounds', 'upgrade'],
 ];
 
 describe('help content', () => {

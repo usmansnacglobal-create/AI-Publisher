@@ -44,7 +44,7 @@ async function currentPeriod(userId: string) {
       p.plan !== 'free' &&
       (p.plan_status === 'cancelled' || (p.plan_status === 'past_due' && end.getTime() + 7 * 86400000 <= now.getTime()));
     if (lapsed) {
-      await admin.from('profiles').update({ plan: 'free', plan_status: 'active', paypal_subscription_id: null }).eq('id', userId);
+      await admin.from('profiles').update({ plan: 'free', plan_status: 'active', paypal_subscription_id: null, stripe_subscription_id: null, billing_provider: null }).eq('id', userId);
       p.plan = 'free';
     }
     while (end <= now) {
