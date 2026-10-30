@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { clsx } from 'clsx';
 import {
-  BarChart3, Bell, BookOpen, ChevronDown, CreditCard, FilePlus2, Gauge, Globe2, History, Inbox, LayoutDashboard, LayoutGrid, LifeBuoy, LogOut, Menu,
+  BarChart3, Bell, BookOpen, ChevronDown, CreditCard, FilePlus2, Gauge, Globe2, Headphones, History, Inbox, LayoutDashboard, LayoutGrid, LifeBuoy, LogOut, Menu,
   Palette, PenLine, Printer, Send, Settings, Shield, Type, X, type LucideIcon,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
@@ -37,6 +37,10 @@ const GROUPS: Group[] = [
       { href: '/dashboard/layout', label: 'Layout Typographer', icon: Type },
       { href: '/dashboard/covers', label: 'Media & Cover Designer', icon: Palette },
     ],
+  },
+  {
+    title: 'Audiobook Studio',
+    items: [{ href: '/dashboard/audiobooks', label: 'Audiobook Narration', icon: Headphones }],
   },
   {
     title: 'Publishing & Outbound',
@@ -78,7 +82,7 @@ const ADMIN: Group = {
 export function activeHref(path: string): string {
   const tab = /^\/dashboard\/books\/(?!new\b)[^/]+(?:\/([^/]+))?/.exec(path);
   if (tab) {
-    const map: Record<string, string> = { write: '/dashboard/writing', format: '/dashboard/layout', cover: '/dashboard/covers', publish: '/dashboard/publishing', print: '/dashboard/print-orders' };
+    const map: Record<string, string> = { write: '/dashboard/writing', format: '/dashboard/layout', cover: '/dashboard/covers', audiobook: '/dashboard/audiobooks', publish: '/dashboard/publishing', print: '/dashboard/print-orders' };
     return map[tab[1] ?? ''] ?? '/dashboard/books';
   }
   const all = [...TOP, ...GROUPS.flatMap((g) => g.items), ...BOTTOM, ...ADMIN.items].map((i) => i.href);
