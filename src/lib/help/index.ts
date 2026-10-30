@@ -36,7 +36,8 @@ export function sectionFor(path: string): string {
   if (m) return m[1];
   if (/^\/dashboard\/books\/[^/]+$/.test(p)) return 'overview';
   m = p.match(/^\/dashboard\/([^/]+)/);
-  if (m) return m[1];
+  // The Audiobook Narration picker shares the audiobook guides.
+  if (m) return m[1] === 'audiobooks' ? 'audiobook' : m[1];
   if (p === '/dashboard') return 'home';
   return p.replace(/^\//, '').split('/')[0] || 'home';
 }

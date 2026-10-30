@@ -128,6 +128,7 @@ describe('help content', () => {
     expect(sectionFor('/dashboard/books/abc')).toBe('overview');
     expect(sectionFor('/dashboard/books/new')).toBe('new-book');
     expect(sectionFor('/dashboard/billing')).toBe('billing');
+    expect(sectionFor('/dashboard/audiobooks')).toBe('audiobook');
     expect(sectionFor('/dashboard')).toBe('home');
     expect(sectionFor('/login')).toBe('login');
   });
